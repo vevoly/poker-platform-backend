@@ -30,6 +30,7 @@
         <module>service-user</module>
         <module>game-external</module>
         <module>game-broker</module>
+        <module>game-test</module>
     </modules>
 
     <dependencyManagement>
@@ -51,7 +52,17 @@
             </dependency>
             <dependency>
                 <groupId>com.iohao.game</groupId>
+                <artifactId>external-netty</artifactId>
+                <version>${ioGame.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.iohao.game</groupId>
                 <artifactId>light-jprotobuf</artifactId>
+                <version>${ioGame.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.iohao.game</groupId>
+                <artifactId>light-client</artifactId>
                 <version>${ioGame.version}</version>
             </dependency>
 
