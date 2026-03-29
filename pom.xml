@@ -27,7 +27,7 @@
 
     <modules>
         <module>game-common</module>
-        <module>service-user</module>
+        <module>services/service-user</module>
         <module>game-external</module>
         <module>game-broker</module>
         <module>game-test</module>
