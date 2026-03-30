@@ -70,24 +70,39 @@ public class CardUtils {
      * 判断是否为顺子（连续递增1）
      */
     public static boolean isStraight(List<Integer> ranks, boolean includeAceAsLow) {
-        if (ranks.size() < 5) return false;
+        // 去重并排序
+        List<Integer> sorted = ranks.stream()
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
 
-        List<Integer> sorted = new ArrayList<>(ranks);
-        Collections.sort(sorted);
-
-        // 处理 A 作为低牌的情况（A-2-3-4-5）
-        if (includeAceAsLow && sorted.get(0) == 2 && sorted.get(sorted.size() - 1) == 14) {
-            // 将 A 改为 1，重新排序
-            sorted.set(sorted.size() - 1, 1);
-            Collections.sort(sorted);
+        // 处理 A 作为低牌的情况 (A-2-3-4-5)
+        if (includeAceAsLow && sorted.contains(14) && sorted.contains(2) &&
+                sorted.contains(3) && sorted.contains(4) && sorted.contains(5)) {
+            // 特殊顺子：A-2-3-4-5，高牌为5
+            return true;
         }
 
-        for (int i = 0; i < sorted.size() - 1; i++) {
-            if (sorted.get(i + 1) - sorted.get(i) != 1) {
-                return false;
+        // 普通顺子检查：需要连续5张
+        if (sorted.size() < 5) {
+            return false;
+        }
+
+        // 检查是否有连续的5张
+        for (int i = 0; i <= sorted.size() - 5; i++) {
+            boolean straight = true;
+            for (int j = i; j < i + 4; j++) {
+                if (sorted.get(j + 1) - sorted.get(j) != 1) {
+                    straight = false;
+                    break;
+                }
+            }
+            if (straight) {
+                return true;
             }
         }
-        return true;
+
+        return false;
     }
 
     /**

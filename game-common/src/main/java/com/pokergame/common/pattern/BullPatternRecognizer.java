@@ -145,9 +145,14 @@ public class BullPatternRecognizer implements PatternRecognizer {
     private int getCardPoint(Card card) {
         CardRank rank = card.getRank();
         int value = rank.getValue();
-        if (value >= 10) return 10;
-        if (value >= 2 && value <= 9) return value;
-        if (value == 14) return 1; // A
+
+        // 牛牛规则：
+        if (value == 14) return 1;      // A = 1 点
+        if (value >= 11 && value <= 13) return 10;  // J、Q、K = 10 点
+        if (value == 15) return 2;       // 2 = 2 点（斗地主专用）
+        if (value == 16 || value == 17) return 0;   // 王牌？牛牛不用王牌
+
+        // 3-10 返回本身
         return value;
     }
 
