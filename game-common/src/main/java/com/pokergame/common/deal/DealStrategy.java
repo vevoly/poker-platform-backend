@@ -22,11 +22,11 @@ public interface DealStrategy {
     GameType getGameType();
 
     /**
-     * 获取目标手牌强度
-     * @param playerIndex 玩家索引
-     * @return 目标强度等级
+     * 获取目标牌型 - 所有需要的数据通过参数传入
+     * @param context 发牌上下文（包含玩家所有相关数据）
      */
-    HandRank getTargetRank(int playerIndex);
+    HandRank getTargetRank(DealContext context);
+
 
     /**
      * 获取需要特殊处理的玩家索引

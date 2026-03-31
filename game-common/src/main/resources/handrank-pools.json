@@ -1,0 +1,69 @@
+{
+  "version": "1.0",
+  "pools": [
+    {
+      "poolId": "doudizhu_base",
+      "name": "斗地主基础池",
+      "gameType": "DOUDIZHU",
+      "ranks": [
+        {"rank": "DOUDIZHU_JUNK", "weight": 15},
+        {"rank": "DOUDIZHU_SINGLE", "weight": 25},
+        {"rank": "DOUDIZHU_PAIR", "weight": 20},
+        {"rank": "DOUDIZHU_TRIPLE", "weight": 15},
+        {"rank": "DOUDIZHU_STRAIGHT", "weight": 12},
+        {"rank": "DOUDIZHU_BOMB", "weight": 8},
+        {"rank": "DOUDIZHU_ROCKET", "weight": 5}
+      ]
+    },
+    {
+      "poolId": "doudizhu_ai_easy",
+      "name": "斗地主AI简单池",
+      "gameType": "DOUDIZHU",
+      "parent": "doudizhu_base",
+      "ranks": [
+        {"rank": "DOUDIZHU_JUNK", "weight": 40},
+        {"rank": "DOUDIZHU_SINGLE", "weight": 30},
+        {"rank": "DOUDIZHU_PAIR", "weight": 20},
+        {"rank": "DOUDIZHU_TRIPLE", "weight": 8},
+        {"rank": "DOUDIZHU_STRAIGHT", "weight": 2}
+      ]
+    },
+    {
+      "poolId": "texas_base",
+      "name": "德州基础池",
+      "gameType": "TEXAS",
+      "ranks": [
+        {"rank": "TEXAS_HIGH_CARD", "weight": 50},
+        {"rank": "TEXAS_ONE_PAIR", "weight": 42},
+        {"rank": "TEXAS_TWO_PAIR", "weight": 5},
+        {"rank": "TEXAS_THREE_OF_KIND", "weight": 2},
+        {"rank": "TEXAS_STRAIGHT_POKER", "weight": 0.5},
+        {"rank": "TEXAS_FLUSH", "weight": 0.3},
+        {"rank": "TEXAS_FULL_HOUSE", "weight": 0.1},
+        {"rank": "TEXAS_FOUR_OF_KIND", "weight": 0.05},
+        {"rank": "TEXAS_STRAIGHT_FLUSH", "weight": 0.01},
+        {"rank": "TEXAS_ROYAL_FLUSH", "weight": 0.001}
+      ]
+    },
+    {
+      "poolId": "bull_base",
+      "name": "牛牛基础池",
+      "gameType": "BULL",
+      "ranks": [
+        {"rank": "BULL_NO", "weight": 25},
+        {"rank": "BULL_1", "weight": 10},
+        {"rank": "BULL_2", "weight": 10},
+        {"rank": "BULL_3", "weight": 10},
+        {"rank": "BULL_4", "weight": 10},
+        {"rank": "BULL_5", "weight": 8},
+        {"rank": "BULL_6", "weight": 7},
+        {"rank": "BULL_7", "weight": 6},
+        {"rank": "BULL_8", "weight": 5},
+        {"rank": "BULL_9", "weight": 4},
+        {"rank": "BULL_BULL", "weight": 3},
+        {"rank": "BULL_FOUR_BOMB", "weight": 1},
+        {"rank": "BULL_FIVE_SMALL", "weight": 1}
+      ]
+    }
+  ]
+}
