@@ -22,6 +22,8 @@ public class DealContext {
 
     /** 玩家ID */
     private long playerId;
+    /** 玩家在房间中的索引 */
+    private int playerIndex;
     /** 游戏类型 */
     private GameType gameType;
 

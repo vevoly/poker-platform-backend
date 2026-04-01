@@ -55,7 +55,57 @@ public class ActiveItem {
     public String getGuaranteeTarget() {
         if (effects == null) return null;
         Object target = effects.get("guaranteeTarget");
-        return target instanceof String ? (String) target : null;
+        if (target instanceof String) {
+            return (String) target;
+        }
+        // 兼容旧格式
+        Object rank = effects.get("targetRank");
+        if (rank instanceof String) {
+            return (String) rank;
+        }
+        return null;
+    }
+
+    /**
+     * 获取道具类型
+     */
+    public String getType() {
+        if (effects == null) return null;
+        Object type = effects.get("type");
+        return type instanceof String ? (String) type : null;
+    }
+
+    /**
+     * 判断是否为保底道具
+     */
+    public boolean isGuarantee() {
+        if (effects == null) return false;
+        // 方式1：通过类型判断
+        Object type = effects.get("type");
+        if (type instanceof String && "GUARANTEE".equals(type)) {
+            return true;
+        }
+        // 方式2：通过是否有保底目标判断
+        return getGuaranteeTarget() != null;
+    }
+
+    /**
+     * 判断是否为加成道具
+     */
+    public boolean isBoost() {
+        if (effects == null) return false;
+        Object type = effects.get("type");
+        if (type instanceof String && "BOOST".equals(type)) {
+            return true;
+        }
+        return getBoostRate() > 0;
+    }
+
+    /**
+     * 判断是否为功能道具
+     */
+    public boolean isFunctional() {
+        return !isGuarantee() && !isBoost();
     }
 
     /**
@@ -66,4 +116,11 @@ public class ActiveItem {
             remainingGames--;
         }
     }
+
+    @Override
+    public String toString() {
+        return String.format("ActiveItem{itemId='%s', name='%s', remaining=%d, isGuarantee=%s}",
+                itemId, name, remainingGames, isGuarantee());
+    }
+
 }
