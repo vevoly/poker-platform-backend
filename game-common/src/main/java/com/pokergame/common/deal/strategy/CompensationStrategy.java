@@ -1,21 +1,22 @@
 package com.pokergame.common.deal.strategy;
 
+import com.pokergame.common.deal.DealContext;
 import com.pokergame.common.deal.DealStrategy;
 import com.pokergame.common.deal.HandRank;
 import com.pokergame.common.game.GameType;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * 连败补偿策略
+ * 连败补偿策略 - 无状态版本
  *
  * 功能：玩家连续输牌达到阈值后，给予更好的牌型
  * 使用场景：防止玩家因连续输牌而流失，提升用户体验
  *
- * 大厂实践：腾讯棋牌专利技术，根据连败次数动态调整牌型等级
+ * 设计原则：
+ * - 策略本身无状态，所有数据从 DealContext 获取
+ * - 不存储玩家数据，数据由调用方传入
  *
  * @author poker-platform
  */
@@ -24,9 +25,6 @@ public class CompensationStrategy implements DealStrategy {
 
     private final GameType gameType;
     private final boolean isActive;
-
-    // 玩家连败次数记录（实际应从数据库/缓存获取）
-    private static final ConcurrentHashMap<Long, AtomicInteger> LOSS_COUNTER = new ConcurrentHashMap<>();
 
     // 补偿阈值配置
     private static final int THRESHOLD_LEVEL_1 = 3;   // 3连败 -> 基础补偿
@@ -63,17 +61,10 @@ public class CompensationStrategy implements DealStrategy {
     }
 
     @Override
-    public HandRank getTargetRank(int playerIndex) {
-        // 这个方法在连败补偿中需要动态获取玩家ID
-        throw new UnsupportedOperationException("请使用 getTargetRank(playerId, lossCount) 方法");
-    }
+    public HandRank getTargetRank(DealContext context) {
+        // 从 context 获取连败次数
+        int lossCount = context.getConsecutiveLosses();
 
-    /**
-     * 根据连败次数获取目标牌型
-     * @param lossCount 连败次数
-     * @return 目标牌型
-     */
-    public HandRank getTargetRankByLossCount(int lossCount) {
         // 检查是否触发补偿
         if (!shouldCompensate(lossCount)) {
             return null;
@@ -81,20 +72,32 @@ public class CompensationStrategy implements DealStrategy {
 
         // 根据连败次数决定补偿等级
         if (lossCount >= THRESHOLD_LEVEL_4) {
-            log.debug("连败{}局，触发顶级补偿", lossCount);
+            log.debug("玩家{}连败{}局，触发顶级补偿", context.getPlayerId(), lossCount);
             return getTopCompensationRank();
         } else if (lossCount >= THRESHOLD_LEVEL_3) {
-            log.debug("连败{}局，触发高级补偿", lossCount);
+            log.debug("玩家{}连败{}局，触发高级补偿", context.getPlayerId(), lossCount);
             return getHighCompensationRank();
         } else if (lossCount >= THRESHOLD_LEVEL_2) {
-            log.debug("连败{}局，触发中级补偿", lossCount);
+            log.debug("玩家{}连败{}局，触发中级补偿", context.getPlayerId(), lossCount);
             return getMidCompensationRank();
         } else if (lossCount >= THRESHOLD_LEVEL_1) {
-            log.debug("连败{}局，触发基础补偿", lossCount);
+            log.debug("玩家{}连败{}局，触发基础补偿", context.getPlayerId(), lossCount);
             return getBaseCompensationRank();
         }
 
         return null;
+    }
+
+    @Override
+    public List<Integer> getSpecialPlayerIndices(int playerCount) {
+        // 连败补偿需要根据实际玩家ID判断，此处返回空
+        // 因为补偿条件在 getTargetRank 中根据 context 判断
+        return List.of();
+    }
+
+    @Override
+    public double getWeightFactor() {
+        return 1.0;
     }
 
     /**
@@ -112,6 +115,7 @@ public class CompensationStrategy implements DealStrategy {
 
         return Math.random() < probability;
     }
+
 
     private HandRank getBaseCompensationRank() {
         switch (gameType) {
@@ -147,41 +151,5 @@ public class CompensationStrategy implements DealStrategy {
             case BULL: return HandRank.BULL_FIVE_SMALL;
             default: return HandRank.DOUDIZHU_ROCKET;
         }
-    }
-
-    /**
-     * 记录玩家输牌（每次对局结束后调用）
-     */
-    public static void recordLoss(long userId) {
-        AtomicInteger counter = LOSS_COUNTER.computeIfAbsent(userId, k -> new AtomicInteger(0));
-        int newCount = counter.incrementAndGet();
-        log.debug("玩家{}连败次数: {}", userId, newCount);
-    }
-
-    /**
-     * 记录玩家赢牌（重置连败计数）
-     */
-    public static void recordWin(long userId) {
-        LOSS_COUNTER.remove(userId);
-        log.debug("玩家{}赢牌，重置连败计数", userId);
-    }
-
-    /**
-     * 获取玩家连败次数
-     */
-    public static int getLossCount(long userId) {
-        AtomicInteger counter = LOSS_COUNTER.get(userId);
-        return counter != null ? counter.get() : 0;
-    }
-
-    @Override
-    public List<Integer> getSpecialPlayerIndices(int playerCount) {
-        // 连败补偿需要根据实际玩家ID判断，此处返回空
-        return List.of();
-    }
-
-    @Override
-    public double getWeightFactor() {
-        return 1.0;
     }
 }

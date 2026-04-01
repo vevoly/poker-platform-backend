@@ -1,5 +1,6 @@
 package com.pokergame.common.deal.strategy;
 
+import com.pokergame.common.deal.DealContext;
 import com.pokergame.common.deal.DealStrategy;
 import com.pokergame.common.deal.HandRank;
 import com.pokergame.common.game.GameType;
@@ -8,12 +9,17 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * VIP特权策略
+ * VIP特权策略 - 无状态版本
  *
  * 功能：根据VIP等级提高高牌型出现概率
  * 使用场景：商业化变现，VIP玩家享受更好的游戏体验
+ *
+ * 设计原则：
+ * - 策略本身无状态，VIP等级从 DealContext 获取
+ * - 不存储玩家数据，数据由调用方（service-user）维护
  *
  * 大厂实践：腾讯欢乐斗地主VIP系统，等级越高特权越多
  *
@@ -24,27 +30,37 @@ public class VipDealStrategy implements DealStrategy {
 
     private final GameType gameType;
     private final boolean isActive;
-    private final Map<Long, Integer> vipLevelCache = new ConcurrentHashMap<>();
 
     // VIP等级对应的加成系数
     private static final double[] VIP_BOOST = {
             0.0,    // V0: 0% 加成
-            0.05,   // V1: 5% 加成
-            0.10,   // V2: 10% 加成
-            0.15,   // V3: 15% 加成
-            0.20,   // V4: 20% 加成
-            0.25,   // V5: 25% 加成
-            0.30,   // V6: 30% 加成
-            0.35,   // V7: 35% 加成
-            0.40,   // V8: 40% 加成
+            0.10,   // V1: 10% 加成
+            0.15,   // V2: 15% 加成
+            0.20,   // V3: 20% 加成
+            0.25,   // V4: 25% 加成
+            0.30,   // V5: 30% 加成
+            0.35,   // V6: 35% 加成
+            0.40,   // V7: 40% 加成
+            0.45,   // V8: 45% 加成
             0.50    // V9: 50% 加成
     };
 
-    // VIP专属牌型池
-    private static final HandRank[] VIP_ONLY_RANKS = {
+    // VIP专属牌型池（按游戏类型分组）
+    private static final HandRank[] DOUDIZHU_VIP_RANKS = {
             HandRank.DOUDIZHU_ROCKET,
+            HandRank.DOUDIZHU_BOMB
+    };
+
+    private static final HandRank[] TEXAS_VIP_RANKS = {
             HandRank.TEXAS_ROYAL_FLUSH,
-            HandRank.BULL_FIVE_SMALL
+            HandRank.TEXAS_STRAIGHT_FLUSH,
+            HandRank.TEXAS_FOUR_OF_KIND
+    };
+
+    private static final HandRank[] BULL_VIP_RANKS = {
+            HandRank.BULL_FIVE_SMALL,
+            HandRank.BULL_FOUR_BOMB,
+            HandRank.BULL_BULL
     };
 
     public VipDealStrategy(GameType gameType) {
@@ -72,93 +88,144 @@ public class VipDealStrategy implements DealStrategy {
     }
 
     @Override
-    public HandRank getTargetRank(int playerIndex) {
-        throw new UnsupportedOperationException("请使用 getTargetRank(playerId) 方法");
-    }
-
-    /**
-     * 根据VIP等级获取目标牌型
-     */
-    public HandRank getTargetRank(long playerId, int vipLevel) {
-        if (!shouldApplyVipBoost(vipLevel)) {
+    public HandRank getTargetRank(DealContext context) {
+        if (context == null) {
             return null;
         }
 
-        // VIP专属牌型概率
-        if (vipLevel >= 7 && Math.random() < getVipSpecialProb(vipLevel)) {
-            return getRandomVipOnlyRank();
+        int vipLevel = context.getVipLevel();
+        if (vipLevel <= 0) {
+            return null;
+        }
+
+        // VIP加成触发概率（VIP等级越高，触发概率越高）
+        double triggerProbability = 0.2 + vipLevel * 0.05;
+        triggerProbability = Math.min(triggerProbability, 0.8);
+
+        log.debug("VIP{} 触发概率: {}", vipLevel, triggerProbability);
+
+        // 检查是否触发VIP加成
+        if (ThreadLocalRandom.current().nextDouble() >= triggerProbability) {
+            return null;
+        }
+
+        // VIP7以上有专属牌型概率
+        if (vipLevel >= 7 && shouldTriggerVipSpecial(vipLevel)) {
+            HandRank specialRank = getRandomVipOnlyRank();
+            if (specialRank != null) {
+                log.debug("玩家{} VIP{}触发专属牌型: {}",
+                        context.getPlayerId(), vipLevel, specialRank.getName());
+                return specialRank;
+            }
         }
 
         // 普通牌型加成
-        return getBoostedRank(vipLevel);
+        HandRank boostedRank = getBoostedRank(vipLevel);
+        if (boostedRank != null) {
+            log.debug("玩家{} VIP{}触发加成牌型: {}",
+                    context.getPlayerId(), vipLevel, boostedRank.getName());
+        }
+        return boostedRank;
     }
 
-    private boolean shouldApplyVipBoost(int vipLevel) {
-        return vipLevel > 0 && Math.random() < getBoostProbability(vipLevel);
+    /**
+     * 判断是否触发VIP专属牌型
+     */
+    private boolean shouldTriggerVipSpecial(int vipLevel) {
+        // VIP7: 5%, VIP8: 8%, VIP9: 12%
+        double probability = 0.05 + (vipLevel - 7) * 0.03;
+        probability = Math.min(probability, 0.15);
+        return ThreadLocalRandom.current().nextDouble() < probability;
     }
 
-    private double getBoostProbability(int vipLevel) {
-        // VIP等级越高，触发概率越高
-        return Math.min(0.3 + vipLevel * 0.03, 0.6);
+    /**
+     * 获取VIP专属牌型
+     */
+    private HandRank getRandomVipOnlyRank() {
+        HandRank[] ranks = getVipOnlyRanks();
+        if (ranks == null || ranks.length == 0) {
+            return null;
+        }
+        int index = ThreadLocalRandom.current().nextInt(ranks.length);
+        return ranks[index];
     }
 
-    private double getVipSpecialProb(int vipLevel) {
-        // VIP7以上才有专属牌型
-        if (vipLevel < 7) return 0;
-        return 0.01 + (vipLevel - 7) * 0.005;
+    /**
+     * 根据游戏类型获取VIP专属牌型池
+     */
+    private HandRank[] getVipOnlyRanks() {
+        switch (gameType) {
+            case DOUDIZHU:
+                return DOUDIZHU_VIP_RANKS;
+            case TEXAS:
+                return TEXAS_VIP_RANKS;
+            case BULL:
+                return BULL_VIP_RANKS;
+            default:
+                return new HandRank[0];
+        }
     }
 
+    /**
+     * 获取VIP加成后的牌型
+     */
     private HandRank getBoostedRank(int vipLevel) {
-        double boost = VIP_BOOST[Math.min(vipLevel, VIP_BOOST.length - 1)];
+        double boost = getVipBoost(vipLevel);
+        double random = ThreadLocalRandom.current().nextDouble();
 
         switch (gameType) {
             case DOUDIZHU:
-                // 提升炸弹/王炸出现概率
-                if (Math.random() < 0.1 + boost) {
+                // 王炸：基础8% + VIP加成
+                if (random < 0.08 + boost) {
+                    return HandRank.DOUDIZHU_ROCKET;
+                }
+                // 炸弹：基础15% + VIP加成
+                if (random < 0.15 + boost) {
                     return HandRank.DOUDIZHU_BOMB;
                 }
-                if (Math.random() < 0.05 + boost * 0.5) {
-                    return HandRank.DOUDIZHU_ROCKET;
+                // 顺子：基础25% + VIP加成
+                if (random < 0.25 + boost * 0.8) {
+                    return HandRank.DOUDIZHU_STRAIGHT;
                 }
                 break;
             case TEXAS:
-                if (Math.random() < 0.05 + boost) {
+                // 皇家同花顺：基础2% + VIP加成
+                if (random < 0.02 + boost * 0.5) {
+                    return HandRank.TEXAS_ROYAL_FLUSH;
+                }
+                // 同花顺：基础5% + VIP加成
+                if (random < 0.05 + boost) {
                     return HandRank.TEXAS_STRAIGHT_FLUSH;
                 }
-                if (Math.random() < 0.02 + boost * 0.5) {
-                    return HandRank.TEXAS_ROYAL_FLUSH;
+                // 四条/葫芦：基础10% + VIP加成
+                if (random < 0.10 + boost) {
+                    return HandRank.TEXAS_FOUR_OF_KIND;
                 }
                 break;
             case BULL:
-                if (Math.random() < 0.08 + boost) {
-                    return HandRank.BULL_BULL;
-                }
-                if (Math.random() < 0.03 + boost * 0.5) {
+                // 五小牛：基础2% + VIP加成
+                if (random < 0.02 + boost * 0.5) {
                     return HandRank.BULL_FIVE_SMALL;
+                }
+                // 四炸：基础5% + VIP加成
+                if (random < 0.05 + boost) {
+                    return HandRank.BULL_FOUR_BOMB;
+                }
+                // 牛牛：基础12% + VIP加成
+                if (random < 0.12 + boost) {
+                    return HandRank.BULL_BULL;
                 }
                 break;
         }
         return null;
     }
 
-    private HandRank getRandomVipOnlyRank() {
-        int index = (int) (Math.random() * VIP_ONLY_RANKS.length);
-        return VIP_ONLY_RANKS[index];
-    }
-
     /**
-     * 设置玩家VIP等级
+     * 获取VIP加成系数
      */
-    public void setVipLevel(long playerId, int level) {
-        vipLevelCache.put(playerId, level);
-        log.debug("玩家{} VIP等级设置为: {}", playerId, level);
-    }
-
-    /**
-     * 获取玩家VIP等级
-     */
-    public int getVipLevel(long playerId) {
-        return vipLevelCache.getOrDefault(playerId, 0);
+    private double getVipBoost(int vipLevel) {
+        int index = Math.min(vipLevel, VIP_BOOST.length - 1);
+        return VIP_BOOST[index];
     }
 
     @Override

@@ -1,19 +1,27 @@
 package com.pokergame.common.deal.strategy;
 
+import com.pokergame.common.deal.DealContext;
 import com.pokergame.common.deal.DealStrategy;
 import com.pokergame.common.deal.HandRank;
 import com.pokergame.common.game.GameType;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * 正态分布策略
+ * 正态分布策略 - 无状态版本
  *
  * 功能：控制牌型出现概率符合正态分布
  * 使用场景：全局牌型概率控制，保证大量牌局的统计公平性
+ *
+ * 设计原则：
+ * - 策略本身无状态，概率配置从配置表加载
+ * - 全局统计信息由调用方维护，通过 DealContext 传入
+ * - 支持动态概率调整
  *
  * 大厂实践：腾讯棋牌专利技术 - 牌型配置表 + 正态分布函数
  *
@@ -25,18 +33,8 @@ public class NormalDistributionStrategy implements DealStrategy {
     private final GameType gameType;
     private final boolean isActive;
 
-    // 牌型配置表（牌型 -> 正态分布概率）
-    private static final ConcurrentHashMap<GameType, HandRankProbability[]> RANK_PROBABILITIES = new ConcurrentHashMap<>();
-
-    // 随机数生成器
-    private static final Random RANDOM = new Random();
-
-    // 牌局计数器（用于全局概率统计）
-    private static final ConcurrentHashMap<GameType, Integer> GAME_COUNTER = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<GameType, ConcurrentHashMap<HandRank, Integer>> RANK_COUNTER = new ConcurrentHashMap<>();
-
-    // 全局概率偏差容忍度
-    private static final double TOLERANCE = 0.05;
+    // 牌型概率配置（从配置加载，静态不变）
+    private static final Map<GameType, HandRankProbability[]> RANK_PROBABILITIES = new ConcurrentHashMap<>();
 
     static {
         initProbabilities();
@@ -53,6 +51,7 @@ public class NormalDistributionStrategy implements DealStrategy {
 
     /**
      * 初始化牌型概率配置表
+     * 配置可改为从 JSON 文件加载，便于运营调整
      */
     private static void initProbabilities() {
         // 斗地主牌型概率配置（基于正态分布）
@@ -96,6 +95,8 @@ public class NormalDistributionStrategy implements DealStrategy {
                 new HandRankProbability(HandRank.BULL_FOUR_BOMB, 0.005, 11, 13),
                 new HandRankProbability(HandRank.BULL_FIVE_SMALL, 0.001, 12, 14)
         });
+
+        log.info("正态分布策略概率配置初始化完成");
     }
 
     @Override
@@ -114,32 +115,36 @@ public class NormalDistributionStrategy implements DealStrategy {
     }
 
     @Override
-    public HandRank getTargetRank(int playerIndex) {
+    public HandRank getTargetRank(DealContext context) {
         HandRankProbability[] probs = RANK_PROBABILITIES.get(gameType);
         if (probs == null) {
             return null;
         }
 
-        // 根据当前全局概率偏差调整选择
-        return selectRankWithNormalDistribution(probs);
+        // 从 context 获取全局统计信息
+        GlobalStatistics stats = context.getGlobalStatistics();
+
+        // 根据全局概率偏差调整选择
+        return selectRankWithNormalDistribution(probs, stats);
     }
 
     /**
      * 基于正态分布选择牌型
+     *
+     * @param probs 牌型概率配置
+     * @param stats 全局统计信息（从外部传入）
+     * @return 选中的牌型
      */
-    private HandRank selectRankWithNormalDistribution(HandRankProbability[] probs) {
-        // 计算当前各牌型的实际出现频率
-        ConcurrentHashMap<HandRank, Integer> counter = RANK_COUNTER.computeIfAbsent(gameType, k -> new ConcurrentHashMap<>());
-        int totalGames = GAME_COUNTER.getOrDefault(gameType, 0);
-
+    private HandRank selectRankWithNormalDistribution(HandRankProbability[] probs,
+                                                      GlobalStatistics stats) {
         // 使用正态分布随机选择
-        double random = RANDOM.nextGaussian() * 0.5 + 0.5;  // 均值0.5，标准差0.5
+        double random = ThreadLocalRandom.current().nextGaussian() * 0.5 + 0.5;
         random = Math.max(0, Math.min(1, random));
 
         double cumulative = 0;
         for (HandRankProbability prob : probs) {
             // 根据实际频率调整理论概率
-            double adjustedProb = getAdjustedProbability(prob, counter, totalGames);
+            double adjustedProb = getAdjustedProbability(prob, stats);
             cumulative += adjustedProb;
             if (random <= cumulative) {
                 return prob.rank;
@@ -152,53 +157,31 @@ public class NormalDistributionStrategy implements DealStrategy {
     /**
      * 获取调整后的概率（根据实际出现频率）
      */
-    private double getAdjustedProbability(HandRankProbability prob,
-                                          ConcurrentHashMap<HandRank, Integer> counter,
-                                          int totalGames) {
+    private double getAdjustedProbability(HandRankProbability prob, GlobalStatistics stats) {
         double theoreticalProb = prob.probability;
 
-        if (totalGames < 100) {
+        if (stats == null || stats.getTotalGames() < 100) {
             return theoreticalProb;
         }
 
-        int actualCount = counter.getOrDefault(prob.rank, 0);
-        double actualProb = (double) actualCount / totalGames;
+        int actualCount = stats.getRankCount(prob.rank);
+        double actualProb = (double) actualCount / stats.getTotalGames();
 
         // 计算偏差并调整
         double deviation = actualProb - theoreticalProb;
 
         // 如果实际概率高于理论概率，降低选择概率
         if (deviation > TOLERANCE) {
-            return theoreticalProb * (1 - (deviation - TOLERANCE) * 2);
+            double reduced = theoreticalProb * (1 - (deviation - TOLERANCE) * 2);
+            return Math.max(0, reduced);
         }
         // 如果实际概率低于理论概率，提高选择概率
         else if (deviation < -TOLERANCE) {
-            return theoreticalProb * (1 + (Math.abs(deviation) - TOLERANCE) * 2);
+            double increased = theoreticalProb * (1 + (Math.abs(deviation) - TOLERANCE) * 2);
+            return Math.min(1.0, increased);
         }
 
         return theoreticalProb;
-    }
-
-    /**
-     * 记录牌局结果（用于全局概率统计）
-     */
-    public static void recordGameResult(GameType gameType, HandRank rank) {
-        GAME_COUNTER.merge(gameType, 1, Integer::sum);
-        ConcurrentHashMap<HandRank, Integer> counter = RANK_COUNTER.computeIfAbsent(gameType, k -> new ConcurrentHashMap<>());
-        counter.merge(rank, 1, Integer::sum);
-
-        // 每1000局输出一次统计
-        int total = GAME_COUNTER.get(gameType);
-        if (total % 1000 == 0) {
-            log.info("{}牌型统计 (总{}局): {}", gameType, total, counter);
-        }
-    }
-
-    /**
-     * 获取牌型概率配置
-     */
-    public static HandRankProbability[] getProbabilities(GameType gameType) {
-        return RANK_PROBABILITIES.get(gameType);
     }
 
     @Override
@@ -209,6 +192,46 @@ public class NormalDistributionStrategy implements DealStrategy {
     @Override
     public double getWeightFactor() {
         return 1.0;
+    }
+
+    /**
+     * 获取牌型概率配置（供外部查询）
+     */
+    public static HandRankProbability[] getProbabilities(GameType gameType) {
+        return RANK_PROBABILITIES.get(gameType);
+    }
+
+    // ==================== 配置常量 ====================
+
+    /** 全局概率偏差容忍度 */
+    private static final double TOLERANCE = 0.05;
+
+    // ==================== 内部类 ====================
+
+    /**
+     * 全局统计信息 - 纯数据结构
+     * 由调用方维护，通过 DealContext 传入
+     */
+    public static class GlobalStatistics {
+        private final int totalGames;
+        private final Map<HandRank, Integer> rankCounts;
+
+        public GlobalStatistics(int totalGames, Map<HandRank, Integer> rankCounts) {
+            this.totalGames = totalGames;
+            this.rankCounts = rankCounts != null ? rankCounts : Map.of();
+        }
+
+        public int getTotalGames() {
+            return totalGames;
+        }
+
+        public int getRankCount(HandRank rank) {
+            return rankCounts.getOrDefault(rank, 0);
+        }
+
+        public Map<HandRank, Integer> getRankCounts() {
+            return rankCounts;
+        }
     }
 
     /**

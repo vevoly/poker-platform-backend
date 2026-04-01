@@ -1,5 +1,6 @@
 package com.pokergame.common.deal.strategy;
 
+import com.pokergame.common.deal.DealContext;
 import com.pokergame.common.deal.DealStrategy;
 import com.pokergame.common.deal.HandRank;
 import com.pokergame.common.game.GameType;
@@ -10,10 +11,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 回归奖励策略
+ * 回归奖励策略 - 无状态版本
  *
  * 功能：召回流失玩家，给予回归奖励
  * 使用场景：玩家超过N天未登录后回归，给予好牌型
+ *
+ * 设计原则：
+ * - 策略本身无状态，流失天数和剩余奖励次数从 DealContext 获取
+ * - 不存储玩家数据，数据由调用方（service-user）维护
  *
  * 大厂实践：腾讯游戏回归系统，根据流失天数给予不同奖励
  *
@@ -25,20 +30,11 @@ public class ReturnBonusStrategy implements DealStrategy {
     private final GameType gameType;
     private final boolean isActive;
 
-    // 玩家最后登录时间记录
-    private static final Map<Long, Long> LAST_LOGIN_TIME = new ConcurrentHashMap<>();
-
     // 流失天数阈值
     private static final int RETURN_DAYS_1 = 3;    // 3天未登录 -> 基础回归
     private static final int RETURN_DAYS_2 = 7;    // 7天未登录 -> 中级回归
     private static final int RETURN_DAYS_3 = 15;   // 15天未登录 -> 高级回归
     private static final int RETURN_DAYS_4 = 30;   // 30天未登录 -> 顶级回归
-
-    // 回归奖励局数限制（回归后前N局享受奖励）
-    private static final int BONUS_GAMES_LIMIT = 10;
-
-    // 玩家剩余奖励局数
-    private static final Map<Long, Integer> REMAINING_BONUS_GAMES = new ConcurrentHashMap<>();
 
     public ReturnBonusStrategy(GameType gameType) {
         this(gameType, true);
@@ -65,46 +61,46 @@ public class ReturnBonusStrategy implements DealStrategy {
     }
 
     @Override
-    public HandRank getTargetRank(int playerIndex) {
-        throw new UnsupportedOperationException("请使用 getTargetRank(playerId) 方法");
-    }
-
-    /**
-     * 检查玩家是否回归并获取奖励牌型
-     */
-    public HandRank getTargetRank(long playerId) {
-        // 检查是否还有剩余奖励局数
-        Integer remaining = REMAINING_BONUS_GAMES.get(playerId);
-        if (remaining == null || remaining <= 0) {
+    public HandRank getTargetRank(DealContext context) {
+        if (context == null) {
             return null;
         }
 
-        // 获取流失天数
-        int daysAway = getDaysAway(playerId);
+        // 从 context 获取回归奖励相关信息
+        int remainingBonusGames = context.getRemainingBonusGames();
+        if (remainingBonusGames <= 0) {
+            return null;
+        }
+
+        int daysAway = context.getDaysAway();
         if (daysAway < RETURN_DAYS_1) {
             return null;
         }
 
-        // 消耗一次奖励机会
-        REMAINING_BONUS_GAMES.put(playerId, remaining - 1);
-        log.debug("玩家{}回归奖励剩余次数: {}", playerId, remaining - 1);
+        // 注意：这里不消耗奖励次数，只返回牌型
+        // 消耗由调用方在发牌后通过 service-user 更新
+        log.debug("玩家{}回归奖励触发: 流失{}天, 剩余{}局",
+                context.getPlayerId(), daysAway, remainingBonusGames);
 
         // 根据流失天数决定奖励等级
         return getBonusRank(daysAway);
     }
 
+    /**
+     * 根据流失天数获取奖励牌型
+     */
     private HandRank getBonusRank(int daysAway) {
         if (daysAway >= RETURN_DAYS_4) {
-            log.debug("玩家流失{}天，触发顶级回归奖励", daysAway);
+            log.debug("流失{}天，触发顶级回归奖励", daysAway);
             return getTopBonusRank();
         } else if (daysAway >= RETURN_DAYS_3) {
-            log.debug("玩家流失{}天，触发高级回归奖励", daysAway);
+            log.debug("流失{}天，触发高级回归奖励", daysAway);
             return getHighBonusRank();
         } else if (daysAway >= RETURN_DAYS_2) {
-            log.debug("玩家流失{}天，触发中级回归奖励", daysAway);
+            log.debug("流失{}天，触发中级回归奖励", daysAway);
             return getMidBonusRank();
         } else {
-            log.debug("玩家流失{}天，触发基础回归奖励", daysAway);
+            log.debug("流失{}天，触发基础回归奖励", daysAway);
             return getBaseBonusRank();
         }
     }
@@ -145,42 +141,6 @@ public class ReturnBonusStrategy implements DealStrategy {
         }
     }
 
-    /**
-     * 获取玩家流失天数
-     */
-    private int getDaysAway(long playerId) {
-        Long lastLogin = LAST_LOGIN_TIME.get(playerId);
-        if (lastLogin == null) {
-            return 0;
-        }
-        long days = (System.currentTimeMillis() - lastLogin) / (24 * 60 * 60 * 1000);
-        return (int) days;
-    }
-
-    /**
-     * 记录玩家登录（在登录时调用）
-     */
-    public static void recordLogin(long playerId) {
-        Long lastLogin = LAST_LOGIN_TIME.get(playerId);
-        LAST_LOGIN_TIME.put(playerId, System.currentTimeMillis());
-
-        if (lastLogin != null) {
-            int daysAway = (int)((System.currentTimeMillis() - lastLogin) / (24 * 60 * 60 * 1000));
-            if (daysAway >= RETURN_DAYS_1) {
-                // 触发回归奖励，给予10局奖励机会
-                REMAINING_BONUS_GAMES.put(playerId, BONUS_GAMES_LIMIT);
-                log.info("玩家{}流失{}天回归，给予{}局回归奖励", playerId, daysAway, BONUS_GAMES_LIMIT);
-            }
-        }
-    }
-
-    /**
-     * 获取剩余奖励局数
-     */
-    public static int getRemainingBonusGames(long playerId) {
-        return REMAINING_BONUS_GAMES.getOrDefault(playerId, 0);
-    }
-
     @Override
     public List<Integer> getSpecialPlayerIndices(int playerCount) {
         return List.of();
@@ -190,4 +150,23 @@ public class ReturnBonusStrategy implements DealStrategy {
     public double getWeightFactor() {
         return 1.0;
     }
+
+    /**
+     * 获取流失天数阈值（供外部查询）
+     */
+    public static int getReturnDaysThreshold() {
+        return RETURN_DAYS_1;
+    }
+
+    /**
+     * 获取奖励局数限制（供外部查询）
+     */
+    public static int getBonusGamesLimit() {
+        return BONUS_GAMES_LIMIT;
+    }
+
+    // ==================== 配置常量（供外部使用） ====================
+
+    /** 回归奖励局数限制 */
+    public static final int BONUS_GAMES_LIMIT = 10;
 }

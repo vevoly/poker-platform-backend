@@ -1,11 +1,12 @@
 package com.pokergame.common.deal;
 
-import com.pokergame.common.deal.strategy.ItemBoostStrategy;
+import com.pokergame.common.deal.strategy.NormalDistributionStrategy;
 import com.pokergame.common.game.GameType;
+import com.pokergame.common.item.ActiveItem;
+import com.pokergame.common.event.ActiveEvent;
 import lombok.Builder;
 import lombok.Data;
 
-import java.awt.*;
 import java.util.List;
 import java.util.Map;
 
@@ -17,31 +18,54 @@ import java.util.Map;
 @Builder
 public class DealContext {
 
+    // ==================== 基础信息 ====================
+
+    /** 玩家ID */
     private long playerId;
+    /** 游戏类型 */
     private GameType gameType;
 
-    // 玩家统计数据（从 service-user 获取）
-    private int consecutiveLosses;      // 连败次数
-    private int consecutiveWins;        // 连胜次数
-    private int totalGames;             // 总局数
-    private int vipLevel;               // VIP等级
-    private long lastLoginTime;         // 最后登录时间
+    // ==================== 玩家统计数据（从 service-user 获取） ====================
 
-    // 道具数据（从 service-item 获取）
-    private List<ItemBoostStrategy.ActiveItem> activeItems;
+    /** 连败次数 */
+    private int consecutiveLosses;
+    /** 连胜次数 */
+    private int consecutiveWins;
+    /** 总局数 */
+    private int totalGames;
+    /** VIP等级 */
+    private int vipLevel;
+    /** 剩余回归奖励局数（从 service-user 获取） */
+    private int remainingBonusGames;
+    /** 最后登录时间 */
+    private long lastLoginTime;
+    /** 全局统计信息（用于正态分布策略） */
+    private NormalDistributionStrategy.GlobalStatistics globalStatistics;
+    /** 是否为新手（由 service-user 计算） */
+    private boolean isRookie;
+    /** 注册时间（毫秒，可选） */
+    private long registerTime;
 
-    // 活动数据（从 service-activity 获取）
+    // ==================== 道具数据（从 service-item 获取） ====================
+
+    /** 生效中的道具列表 */
+    private List<ActiveItem> activeItems;
+
+    // ==================== 活动数据（从 service-activity 获取） ====================
+
+    /** 生效中的活动列表 */
     private List<ActiveEvent> activeEvents;
+
+    // ==================== AI相关 ====================
 
     // 是否为AI
     private boolean isAI;
     private int aiDifficulty;           // AI难度 1-10
 
-    // 是否为新手
-    private boolean isRookie;
-
     // 扩展数据
     private Map<String, Object> extra;
+
+    // ==================== 便捷方法 ====================
 
     /**
      * 计算流失天数
@@ -52,13 +76,12 @@ public class DealContext {
     }
 
     /**
-     * 获取道具总加成
+     * 检查是否有指定道具
      */
-    public double getTotalItemBoost() {
-        if (activeItems == null) return 0;
+    public boolean hasItem(String itemId) {
+        if (activeItems == null) return false;
         return activeItems.stream()
-                .mapToDouble(item -> item.getType().getBoostRate())
-                .sum();
+                .anyMatch(item -> item.getItemId().equals(itemId));
     }
 
     /**
@@ -67,6 +90,33 @@ public class DealContext {
     public boolean hasGuaranteeItem() {
         if (activeItems == null) return false;
         return activeItems.stream()
-                .anyMatch(item -> item.getType() == ItemBoostStrategy.ItemType.BAODI_CARD);
+                .anyMatch(item -> "guarantee".equals(item.getEffects().get("type")));
+    }
+
+    /**
+     * 获取道具总加成系数
+     */
+    public double getTotalItemBoost() {
+        if (activeItems == null) return 0;
+        return activeItems.stream()
+                .mapToDouble(ActiveItem::getBoostRate)
+                .sum();
+    }
+
+    /**
+     * 获取胜率（需外部传入）
+     */
+    public double getWinRate() {
+        if (extra == null) return 0;
+        Object winRate = extra.get("winRate");
+        return winRate instanceof Number ? ((Number) winRate).doubleValue() : 0;
+    }
+
+    /**
+     * 计算注册天数
+     */
+    public int getDaysSinceRegister() {
+        if (registerTime <= 0) return Integer.MAX_VALUE;
+        return (int) ((System.currentTimeMillis() - registerTime) / (24 * 60 * 60 * 1000));
     }
 }
