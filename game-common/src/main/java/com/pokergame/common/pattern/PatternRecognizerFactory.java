@@ -1,6 +1,9 @@
 package com.pokergame.common.pattern;
 
 import com.pokergame.common.game.GameType;
+import com.pokergame.common.pattern.bull.BullPatternRecognizer;
+import com.pokergame.common.pattern.doudizhu.DoudizhuPatternRecognizer;
+import com.pokergame.common.pattern.texas.TexasPatternRecognizer;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

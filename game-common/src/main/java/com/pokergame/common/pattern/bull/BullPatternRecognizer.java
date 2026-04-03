@@ -1,9 +1,11 @@
-package com.pokergame.common.pattern;
+package com.pokergame.common.pattern.bull;
 
 import com.pokergame.common.card.Card;
 import com.pokergame.common.card.CardPattern;
 import com.pokergame.common.card.CardRank;
 import com.pokergame.common.game.GameType;
+import com.pokergame.common.pattern.PatternRecognizer;
+import com.pokergame.common.pattern.PatternResult;
 import com.pokergame.common.util.CardUtils;
 import lombok.extern.slf4j.Slf4j;
 

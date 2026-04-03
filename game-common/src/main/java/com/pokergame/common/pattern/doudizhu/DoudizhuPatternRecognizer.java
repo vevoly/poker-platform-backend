@@ -1,9 +1,11 @@
-package com.pokergame.common.pattern;
+package com.pokergame.common.pattern.doudizhu;
 
 import com.pokergame.common.card.Card;
 import com.pokergame.common.card.CardPattern;
 import com.pokergame.common.card.CardRank;
 import com.pokergame.common.game.GameType;
+import com.pokergame.common.pattern.PatternRecognizer;
+import com.pokergame.common.pattern.PatternResult;
 import com.pokergame.common.util.CardUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,8 +37,9 @@ public class DoudizhuPatternRecognizer implements PatternRecognizer {
 
     @Override
     public PatternResult recognize(List<Card> cards) {
+        // 空牌或 null 返回 null
         if (cards == null || cards.isEmpty()) {
-            return new PatternResult(CardPattern.PASS, 0, Collections.emptyList());
+            return null;
         }
 
         int size = cards.size();
@@ -218,30 +221,89 @@ public class DoudizhuPatternRecognizer implements PatternRecognizer {
                 rankMap.values().stream().anyMatch(l -> l.size() == 2);
     }
 
+    /**
+     * 判断是否能组成顺子
+     * 顺子需要：至少5张牌，且存在5个连续的不同牌值
+     */
     private boolean isStraight(List<Integer> ranks) {
-        if (ranks.contains(15)) return false; // 2不能进顺子
-        for (int i = 0; i < ranks.size() - 1; i++) {
-            if (ranks.get(i + 1) - ranks.get(i) != 1) return false;
+        // 去重后不足5种牌值，不可能有顺子
+        if (ranks == null || ranks.size() < 5) {
+            return false;
         }
+
+        // 2不能进顺子
+        if (ranks.contains(15)) {
+            return false;
+        }
+
+        // 检查是否存在5个连续的不同牌值
+        for (int i = 0; i <= ranks.size() - 5; i++) {
+            boolean consecutive = true;
+            for (int j = i; j < i + 4; j++) {
+                if (ranks.get(j + 1) - ranks.get(j) != 1) {
+                    consecutive = false;
+                    break;
+                }
+            }
+            if (consecutive) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 判断是否为连对
+     * 连对需要：至少3对，且牌值连续
+     */
+    private boolean isStraightPair(List<Integer> ranks, Map<Integer, List<Card>> rankMap) {
+        // 检查每个牌值是否都是对子
+        for (Integer rank : ranks) {
+            if (rankMap.get(rank).size() != 2) {
+                return false;
+            }
+        }
+
+        // 检查牌值是否连续
+        for (int i = 0; i < ranks.size() - 1; i++) {
+            if (ranks.get(i + 1) - ranks.get(i) != 1) {
+                return false;
+            }
+        }
+
         return true;
     }
 
-    private boolean isStraightPair(List<Integer> ranks, Map<Integer, List<Card>> rankMap) {
-        if (ranks.contains(15)) return false;
-        for (Integer rank : ranks) {
-            if (rankMap.get(rank).size() != 2) return false;
-        }
-        return isStraight(ranks);
-    }
-
+    /**
+     * 判断是否为飞机（连续的三张）
+     * 飞机需要：至少2个连续的三张
+     */
     private boolean isPlane(List<Integer> ranks, Map<Integer, List<Card>> rankMap) {
-        if (ranks.contains(15)) return false;
+        // 检查每个牌值是否都是三张
         for (Integer rank : ranks) {
-            if (rankMap.get(rank).size() != 3) return false;
+            if (rankMap.get(rank).size() != 3) {
+                return false;
+            }
         }
-        return isStraight(ranks);
+
+        // 2不能进飞机
+        if (ranks.contains(15)) {
+            return false;
+        }
+
+        // 检查牌值是否连续
+        for (int i = 0; i < ranks.size() - 1; i++) {
+            if (ranks.get(i + 1) - ranks.get(i) != 1) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
+    /**
+     * 识别飞机带翅膀
+     */
     private PatternResult recognizePlaneWithWings(Map<Integer, List<Card>> rankMap,
                                                   List<Card> cards, int wingSize) {
         // 分离飞机主体和翅膀
@@ -262,12 +324,26 @@ public class DoudizhuPatternRecognizer implements PatternRecognizer {
         int planeCount = mainRanks.size();
 
         if (planeCount < 2) return null;
-        if (!isStraight(mainRanks)) return null;
+        if (!isConsecutiveRanksForPlane(mainRanks)) return null;
         if (wingRanks.size() != planeCount) return null;
 
         CardPattern pattern = wingSize == 1 ? CardPattern.PLANE_WITH_SINGLE : CardPattern.PLANE_WITH_PAIR;
         log.debug("识别为{}，起始牌值={}", pattern.getName(), mainRanks.get(0));
         return new PatternResult(pattern, mainRanks.get(0), cards, planeCount);
+    }
+
+    /**
+     * 判断飞机主体是否连续（不需要5张，只需要2张以上）
+     */
+    private boolean isConsecutiveRanksForPlane(List<Integer> ranks) {
+        if (ranks.size() < 2) return false;
+        if (ranks.contains(15)) return false;
+        for (int i = 0; i < ranks.size() - 1; i++) {
+            if (ranks.get(i + 1) - ranks.get(i) != 1) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private boolean isFourWithSingles(Map<Integer, List<Card>> rankMap) {

@@ -1,9 +1,11 @@
-package com.pokergame.common.pattern;
+package com.pokergame.common.pattern.texas;
 
 import com.pokergame.common.card.Card;
 import com.pokergame.common.card.CardPattern;
 import com.pokergame.common.card.CardSuit;
 import com.pokergame.common.game.GameType;
+import com.pokergame.common.pattern.PatternRecognizer;
+import com.pokergame.common.pattern.PatternResult;
 import com.pokergame.common.util.CardUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,10 +33,16 @@ import java.util.stream.Collectors;
 public class TexasPatternRecognizer implements PatternRecognizer {
 
     private static final Set<CardPattern> SUPPORTED_PATTERNS = EnumSet.of(
-            CardPattern.HIGH_CARD, CardPattern.ONE_PAIR, CardPattern.TWO_PAIR,
-            CardPattern.THREE_OF_KIND, CardPattern.STRAIGHT_POKER, CardPattern.FLUSH,
-            CardPattern.FULL_HOUSE, CardPattern.FOUR_OF_KIND,
-            CardPattern.STRAIGHT_FLUSH, CardPattern.ROYAL_FLUSH
+            CardPattern.HIGH_CARD,
+            CardPattern.ONE_PAIR,
+            CardPattern.TWO_PAIR,
+            CardPattern.THREE_OF_KIND,
+            CardPattern.STRAIGHT_POKER,
+            CardPattern.FLUSH,
+            CardPattern.FULL_HOUSE,
+            CardPattern.FOUR_OF_KIND,
+            CardPattern.STRAIGHT_FLUSH,
+            CardPattern.ROYAL_FLUSH
     );
 
     @Override
@@ -106,7 +114,7 @@ public class TexasPatternRecognizer implements PatternRecognizer {
         List<Integer> ranks = CardUtils.getSortedRanks(hand);
 
         boolean isFlush = suitMap.values().stream().anyMatch(list -> list.size() == 5);
-        boolean isStraight = CardUtils.isStraight(ranks, true);
+        boolean isStraight = CardUtils.isStraight(ranks, true, true);
 
         // ========== 同花顺 ==========
         if (isFlush && isStraight) {

@@ -66,12 +66,22 @@ public class CardUtils {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 判断是否为顺子（连续递增1）
-     */
     public static boolean isStraight(List<Integer> ranks, boolean includeAceAsLow) {
-        // 去重并排序
+        return isStraight(ranks, includeAceAsLow, false);
+    }
+
+    /**
+     * 判断是否为顺子
+     * @param ranks 牌值列表
+     * @param includeAceAsLow 是否将A视为1
+     * @param isTexas 是否为德州扑克（2视为最小）
+     */
+    public static boolean isStraight(List<Integer> ranks, boolean includeAceAsLow, boolean isTexas) {
         List<Integer> sorted = ranks.stream()
+                .map(r -> {
+                    if (isTexas && r == 15) return 2;  // 德州：2映射为2
+                    return r;
+                })
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
@@ -79,16 +89,12 @@ public class CardUtils {
         // 处理 A 作为低牌的情况 (A-2-3-4-5)
         if (includeAceAsLow && sorted.contains(14) && sorted.contains(2) &&
                 sorted.contains(3) && sorted.contains(4) && sorted.contains(5)) {
-            // 特殊顺子：A-2-3-4-5，高牌为5
             return true;
         }
 
-        // 普通顺子检查：需要连续5张
-        if (sorted.size() < 5) {
-            return false;
-        }
+        // 普通顺子检查
+        if (sorted.size() < 5) return false;
 
-        // 检查是否有连续的5张
         for (int i = 0; i <= sorted.size() - 5; i++) {
             boolean straight = true;
             for (int j = i; j < i + 4; j++) {
@@ -97,11 +103,8 @@ public class CardUtils {
                     break;
                 }
             }
-            if (straight) {
-                return true;
-            }
+            if (straight) return true;
         }
-
         return false;
     }
 
