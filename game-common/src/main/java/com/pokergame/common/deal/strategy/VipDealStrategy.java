@@ -3,22 +3,22 @@ package com.pokergame.common.deal.strategy;
 import com.pokergame.common.deal.DealContext;
 import com.pokergame.common.deal.DealStrategy;
 import com.pokergame.common.deal.HandRank;
+import com.pokergame.common.deal.VipConfigData;
 import com.pokergame.common.game.GameType;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * VIP特权策略 - 无状态版本
+ * VIP特权策略 - 配置驱动版本
  *
  * 功能：根据VIP等级提高高牌型出现概率
  * 使用场景：商业化变现，VIP玩家享受更好的游戏体验
  *
  * 设计原则：
  * - 策略本身无状态，VIP等级从 DealContext 获取
+ * - VIP配置通过 VipConfigData 传入，支持动态调整
  * - 不存储玩家数据，数据由调用方（service-user）维护
  *
  * 大厂实践：腾讯欢乐斗地主VIP系统，等级越高特权越多
@@ -31,8 +31,8 @@ public class VipDealStrategy implements DealStrategy {
     private final GameType gameType;
     private final boolean isActive;
 
-    // VIP等级对应的加成系数
-    private static final double[] VIP_BOOST = {
+    // 默认配置（当 context 中没有传入配置时使用）
+    private static final double[] DEFAULT_VIP_BOOST = {
             0.0,    // V0: 0% 加成
             0.10,   // V1: 10% 加成
             0.15,   // V2: 15% 加成
@@ -43,6 +43,34 @@ public class VipDealStrategy implements DealStrategy {
             0.40,   // V7: 40% 加成
             0.45,   // V8: 45% 加成
             0.50    // V9: 50% 加成
+    };
+
+    // 默认触发概率配置
+    private static final double[] DEFAULT_TRIGGER_PROB = {
+            0.00,   // V0: 0%
+            0.08,   // V1: 8%
+            0.10,   // V2: 10%
+            0.12,   // V3: 12%
+            0.14,   // V4: 14%
+            0.16,   // V5: 16%
+            0.18,   // V6: 18%
+            0.20,   // V7: 20%
+            0.22,   // V8: 22%
+            0.25    // V9: 25%
+    };
+
+    // 默认专属牌型概率配置
+    private static final double[] DEFAULT_SPECIAL_PROB = {
+            0.00,   // V0-V6: 0%
+            0.00,   // V1
+            0.00,   // V2
+            0.00,   // V3
+            0.00,   // V4
+            0.00,   // V5
+            0.00,   // V6
+            0.05,   // V7: 5%
+            0.08,   // V8: 8%
+            0.12    // V9: 12%
     };
 
     // VIP专属牌型池（按游戏类型分组）
@@ -98,10 +126,11 @@ public class VipDealStrategy implements DealStrategy {
             return null;
         }
 
-        // VIP加成触发概率（VIP等级越高，触发概率越高）
-        double triggerProbability = 0.2 + vipLevel * 0.05;
-        triggerProbability = Math.min(triggerProbability, 0.8);
+        // 获取VIP配置（优先使用传入的配置，否则使用默认配置）
+        VipConfigData config = context.getVipConfig();
 
+        // VIP加成触发概率
+        double triggerProbability = getTriggerProbability(vipLevel, config);
         log.debug("VIP{} 触发概率: {}", vipLevel, triggerProbability);
 
         // 检查是否触发VIP加成
@@ -110,7 +139,7 @@ public class VipDealStrategy implements DealStrategy {
         }
 
         // VIP7以上有专属牌型概率
-        if (vipLevel >= 7 && shouldTriggerVipSpecial(vipLevel)) {
+        if (vipLevel >= 7 && shouldTriggerVipSpecial(vipLevel, config)) {
             HandRank specialRank = getRandomVipOnlyRank();
             if (specialRank != null) {
                 log.debug("玩家{} VIP{}触发专属牌型: {}",
@@ -120,7 +149,7 @@ public class VipDealStrategy implements DealStrategy {
         }
 
         // 普通牌型加成
-        HandRank boostedRank = getBoostedRank(vipLevel);
+        HandRank boostedRank = getBoostedRank(vipLevel, config);
         if (boostedRank != null) {
             log.debug("玩家{} VIP{}触发加成牌型: {}",
                     context.getPlayerId(), vipLevel, boostedRank.getName());
@@ -129,12 +158,28 @@ public class VipDealStrategy implements DealStrategy {
     }
 
     /**
+     * 获取VIP加成触发概率
+     */
+    private double getTriggerProbability(int vipLevel, VipConfigData config) {
+        if (config != null && config.getTriggerProbability(vipLevel) > 0) {
+            return config.getTriggerProbability(vipLevel);
+        }
+        // 使用默认配置
+        int index = Math.min(vipLevel, DEFAULT_TRIGGER_PROB.length - 1);
+        return DEFAULT_TRIGGER_PROB[index];
+    }
+
+    /**
      * 判断是否触发VIP专属牌型
      */
-    private boolean shouldTriggerVipSpecial(int vipLevel) {
-        // VIP7: 5%, VIP8: 8%, VIP9: 12%
-        double probability = 0.05 + (vipLevel - 7) * 0.03;
-        probability = Math.min(probability, 0.15);
+    private boolean shouldTriggerVipSpecial(int vipLevel, VipConfigData config) {
+        double probability;
+        if (config != null && config.getSpecialProbability(vipLevel) > 0) {
+            probability = config.getSpecialProbability(vipLevel);
+        } else {
+            int index = Math.min(vipLevel, DEFAULT_SPECIAL_PROB.length - 1);
+            probability = DEFAULT_SPECIAL_PROB[index];
+        }
         return ThreadLocalRandom.current().nextDouble() < probability;
     }
 
@@ -169,8 +214,8 @@ public class VipDealStrategy implements DealStrategy {
     /**
      * 获取VIP加成后的牌型
      */
-    private HandRank getBoostedRank(int vipLevel) {
-        double boost = getVipBoost(vipLevel);
+    private HandRank getBoostedRank(int vipLevel, VipConfigData config) {
+        double boost = getVipBoost(vipLevel, config);
         double random = ThreadLocalRandom.current().nextDouble();
 
         switch (gameType) {
@@ -223,9 +268,12 @@ public class VipDealStrategy implements DealStrategy {
     /**
      * 获取VIP加成系数
      */
-    private double getVipBoost(int vipLevel) {
-        int index = Math.min(vipLevel, VIP_BOOST.length - 1);
-        return VIP_BOOST[index];
+    private double getVipBoost(int vipLevel, VipConfigData config) {
+        if (config != null && config.getBoostRate(vipLevel) > 0) {
+            return config.getBoostRate(vipLevel);
+        }
+        int index = Math.min(vipLevel, DEFAULT_VIP_BOOST.length - 1);
+        return DEFAULT_VIP_BOOST[index];
     }
 
     @Override
@@ -235,6 +283,7 @@ public class VipDealStrategy implements DealStrategy {
 
     @Override
     public double getWeightFactor() {
-        return 1.0;
+        // 返回VIP5的默认加成系数
+        return DEFAULT_VIP_BOOST[5];
     }
 }

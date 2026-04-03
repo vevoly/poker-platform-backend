@@ -132,7 +132,7 @@ public class DoudizhuPatternRecognizer implements PatternRecognizer {
             return new PatternResult(CardPattern.FOUR_WITH_PAIR, mainRank, cards);
         }
 
-        log.warn("无法识别的牌型，牌数={}, 牌={}", size, CardUtils.toVisualString(cards));
+        log.debug("无法识别的牌型，牌数={}, 牌={}", size, CardUtils.toVisualString(cards));
         return new PatternResult(CardPattern.PASS, 0, cards);
     }
 

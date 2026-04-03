@@ -37,6 +37,8 @@ public class DealContext {
     private int totalGames;
     /** VIP等级 */
     private int vipLevel;
+    /** VIP配置数据（从 service-user 获取） */
+    private VipConfigData vipConfig;
     /** 剩余回归奖励局数（从 service-user 获取） */
     private int remainingBonusGames;
     /** 最后登录时间 */

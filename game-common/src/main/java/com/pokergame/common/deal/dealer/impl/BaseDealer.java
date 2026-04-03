@@ -4,11 +4,11 @@ import com.pokergame.common.card.Card;
 import com.pokergame.common.card.CardDeck;
 import com.pokergame.common.deal.*;
 import com.pokergame.common.deal.dealer.Dealer;
-import com.pokergame.common.deal.generator.HandGenerator;
 import com.pokergame.common.deal.generator.impl.CompositeHandGenerator;
+import com.pokergame.common.deal.generator.HandGenerator;
+import com.pokergame.common.item.ActiveItem;
 import com.pokergame.common.deal.validator.DealValidator;
 import com.pokergame.common.game.GameType;
-import com.pokergame.common.item.ActiveItem;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -45,9 +45,6 @@ public abstract class BaseDealer implements Dealer {
     /** 手牌生成器 - 负责生成手牌 */
     protected final HandGenerator handGenerator;
 
-    /** 发牌验证器 - 负责验证结果 */
-    protected final DealValidator dealValidator;
-
     /** 牌型评估器 - 用于验证生成的牌型 */
     protected final HandRankEvaluator rankEvaluator;
 
@@ -58,7 +55,6 @@ public abstract class BaseDealer implements Dealer {
         this.playerCount = playerCount;
         this.strategyManager = new DealStrategyManager(gameType);
         this.handGenerator = createHandGenerator();
-        this.dealValidator = createDealValidator();
         this.rankEvaluator = new HandRankEvaluator();
 
         // 验证玩家数量
@@ -74,7 +70,7 @@ public abstract class BaseDealer implements Dealer {
      * 子类不应重写此方法
      */
     @Override
-    public List<List<Card>> deal(MultiPlayerDealContext context) {
+    public final List<List<Card>> deal(MultiPlayerDealContext context) {
         log.debug("开始发牌: game={}, players={}", gameType, playerCount);
 
         // 1. 初始化牌堆
@@ -115,8 +111,9 @@ public abstract class BaseDealer implements Dealer {
             log.debug("地主底牌: {}张", landlordExtra.size());
         }
 
-        // 7. 验证发牌结果
-        dealValidator.validate(hands);
+        // 7. 验证发牌结果（动态创建验证器）
+        DealValidator validator = createDefaultValidator(context);
+        validator.validate(hands);
 
         log.info("发牌完成: game={}, totalCards={}", gameType, getTotalCardCount());
 
@@ -228,11 +225,11 @@ public abstract class BaseDealer implements Dealer {
         return new CompositeHandGenerator(gameType);
     }
 
-    protected DealValidator createDealValidator() {
-        return createDefaultValidator();
-    }
-
-    protected abstract DealValidator createDefaultValidator();
+    /**
+     * 创建默认验证器（需要子类实现）
+     * @param context 多玩家上下文，用于动态计算验证参数
+     */
+    protected abstract DealValidator createDefaultValidator(MultiPlayerDealContext context);
 
     protected int getDecksCount() {
         return 1;
@@ -240,16 +237,21 @@ public abstract class BaseDealer implements Dealer {
 
     // ==================== 抽象方法 ====================
 
+    /** 验证玩家数量 */
     protected abstract void validatePlayerCount(int playerCount);
 
+    /** 获取手牌大小 */
     @Override
     public abstract int getHandSize(int playerIndex, boolean isLandlord);
 
+    /** 获取总牌数 */
     @Override
     public abstract int getTotalCardCount();
 
+    /** 获取地主索引 */
     protected abstract int getLandlordIndex(MultiPlayerDealContext context);
 
+    /** 获取地主底牌 */
     protected abstract List<Card> extractLandlordCards(CardDeck deck, int landlordIndex);
 
     // ==================== 接口方法 ====================
@@ -264,3 +266,4 @@ public abstract class BaseDealer implements Dealer {
         return playerCount;
     }
 }
+

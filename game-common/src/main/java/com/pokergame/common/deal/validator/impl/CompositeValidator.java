@@ -33,21 +33,40 @@ public class CompositeValidator implements DealValidator {
         return "CompositeValidator";
     }
 
+    // ==================== 静态工厂方法 ====================
+
     /**
      * 创建斗地主默认验证器
+     * @param playerCount 玩家数量（2或3）
+     * @param landlordIndex 地主索引
      */
-    public static CompositeValidator createDoudizhuValidator() {
+    public static CompositeValidator createDoudizhuValidator(int playerCount, int landlordIndex) {
+        // 计算斗地主总牌数：农民17张 × (玩家数-1) + 地主20张
+        int totalCards = 17 * (playerCount - 1) + 20;
+
+        // 构建手牌大小列表用于验证
+        List<Integer> expectedHandSizes = new ArrayList<>();
+        for (int i = 0; i < playerCount; i++) {
+            if (i == landlordIndex) {
+                expectedHandSizes.add(20);
+            } else {
+                expectedHandSizes.add(17);
+            }
+        }
+
         return new CompositeValidator()
                 .addValidator(new UniquenessValidator())
                 .addValidator(new RankLimitValidator())
-                .addValidator(new CardCountValidator(54));  // 斗地主54张
+                .addValidator(new CardCountValidator(totalCards))
+                .addValidator(new HandSizeValidator(expectedHandSizes));
     }
 
     /**
      * 创建德州扑克默认验证器
+     * @param playerCount 玩家数量（2-9）
      */
     public static CompositeValidator createTexasValidator(int playerCount) {
-        int totalCards = playerCount * 2 + 5;  // 手牌 + 公共牌
+        int totalCards = playerCount * 2;  // 只验证手牌，公共牌单独验证
         return new CompositeValidator()
                 .addValidator(new UniquenessValidator())
                 .addValidator(new RankLimitValidator())
@@ -56,11 +75,21 @@ public class CompositeValidator implements DealValidator {
 
     /**
      * 创建牛牛默认验证器
+     * @param playerCount 玩家数量（2-6）
      */
     public static CompositeValidator createBullValidator(int playerCount) {
         return new CompositeValidator()
                 .addValidator(new UniquenessValidator())
                 .addValidator(new RankLimitValidator())
                 .addValidator(new CardCountValidator(playerCount * 5));
+    }
+
+    /**
+     * 创建基础验证器（只验证牌唯一性和牌值限制）
+     */
+    public static CompositeValidator createBasicValidator() {
+        return new CompositeValidator()
+                .addValidator(new UniquenessValidator())
+                .addValidator(new RankLimitValidator());
     }
 }

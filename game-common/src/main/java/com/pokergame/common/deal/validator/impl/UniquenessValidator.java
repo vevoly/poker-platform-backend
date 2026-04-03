@@ -2,10 +2,12 @@ package com.pokergame.common.deal.validator.impl;
 
 import com.pokergame.common.card.Card;
 import com.pokergame.common.deal.validator.DealValidator;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 牌唯一性验证器
@@ -13,21 +15,39 @@ import java.util.Set;
  *
  * @author poker-platform
  */
+@Slf4j
 public class UniquenessValidator implements DealValidator {
 
     @Override
     public void validate(List<List<Card>> hands) {
         Set<Integer> cardIds = new HashSet<>();
+        for (int i = 0; i < hands.size(); i++) {
+            List<Card> hand = hands.get(i);
+            log.info("玩家{}手牌({}张): {}", i, hand.size(),
+                    hand.stream().map(c -> c.toString() + "(" + c.getId() + ")").collect(Collectors.joining(",")));
 
-        for (List<Card> hand : hands) {
             for (Card card : hand) {
                 int id = card.getId();
                 if (cardIds.contains(id)) {
-                    throw new IllegalStateException("发现重复牌: " + card);
+                    log.error("重复牌 {} (ID={}) 出现在玩家 {} 的手牌中", card, id, i);
+                    log.error("该ID首次出现在玩家: {}", findPlayerIndex(hands, id));
+                    log.error("已存在的牌ID: {}", cardIds);
+                    throw new IllegalStateException("发现重复牌: " + card + "(ID=" + id + ")");
                 }
                 cardIds.add(id);
             }
         }
+    }
+
+    private int findPlayerIndex(List<List<Card>> hands, int targetId) {
+        for (int i = 0; i < hands.size(); i++) {
+            for (Card card : hands.get(i)) {
+                if (card.getId() == targetId) {
+                    return i;
+                }
+            }
+        }
+        return -1;
     }
 
     @Override

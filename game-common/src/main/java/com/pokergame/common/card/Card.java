@@ -83,10 +83,10 @@ public class Card implements Comparable<Card> {
             return rank == CardRank.JOKER_SMALL ? 52 : 53;
         }
 
-
-        int suitOffset = suit.getValue() * 13;
-        // 牌值偏移，减去 3 是为了使最小点数（3）的偏移为 0，这样整副牌 ID 可以从 0 开始连续排列
-        int rankOffset = rank.getValue() - 3;
+        // 普通牌 ID 计算
+        // 黑桃: 0-12, 红桃: 13-25, 梅花: 26-38, 方块: 39-51
+        int suitOffset = suit.getIdOffset();  // 需要定义各花色的偏移量
+        int rankOffset = rank.getRankOffset(); // 牌值偏移量
         return suitOffset + rankOffset;
     }
 
