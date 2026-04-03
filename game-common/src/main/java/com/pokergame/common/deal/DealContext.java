@@ -3,7 +3,7 @@ package com.pokergame.common.deal;
 import com.pokergame.common.deal.strategy.NormalDistributionStrategy;
 import com.pokergame.common.game.GameType;
 import com.pokergame.common.item.ActiveItem;
-import com.pokergame.common.event.ActiveEvent;
+import com.pokergame.common.activity.ActiveActivity;
 import lombok.Builder;
 import lombok.Data;
 
@@ -58,7 +58,7 @@ public class DealContext {
     // ==================== 活动数据（从 service-activity 获取） ====================
 
     /** 生效中的活动列表 */
-    private List<ActiveEvent> activeEvents;
+    private List<ActiveActivity> activeEvents;
 
     // ==================== AI相关 ====================
 

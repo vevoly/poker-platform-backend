@@ -3,9 +3,8 @@ package com.pokergame.common.test.deal;
 import com.pokergame.common.deal.DealContext;
 import com.pokergame.common.deal.DealStrategyManager;
 import com.pokergame.common.deal.HandRank;
-import com.pokergame.common.deal.VipConfigData;
 import com.pokergame.common.item.ActiveItem;
-import com.pokergame.common.event.ActiveEvent;
+import com.pokergame.common.activity.ActiveActivity;
 import com.pokergame.common.game.GameType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -322,9 +321,9 @@ class StrategyStackTest {
                 .build();
     }
 
-    private ActiveEvent createEvent(String eventId, double boostRate) {
-        return ActiveEvent.builder()
-                .eventId(eventId)
+    private ActiveActivity createEvent(String eventId, double boostRate) {
+        return ActiveActivity.builder()
+                .activityId(eventId)
                 .eventName(eventId)
                 .isActive(true)
                 .startTime(System.currentTimeMillis() - 10000)

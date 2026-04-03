@@ -1,6 +1,6 @@
 package com.pokergame.common.deal.strategy;
 
-import com.pokergame.common.event.ActiveEvent;
+import com.pokergame.common.activity.ActiveActivity;
 import com.pokergame.common.deal.DealContext;
 import com.pokergame.common.deal.DealStrategy;
 import com.pokergame.common.deal.HandRank;
@@ -119,13 +119,13 @@ public class EventDealStrategy implements DealStrategy {
      */
     private boolean isPlayerInEvent(DealContext context) {
         // 从 context 获取活动列表，检查是否包含当前活动
-        List<ActiveEvent> activeEvents = context.getActiveEvents();
+        List<ActiveActivity> activeEvents = context.getActiveEvents();
         if (activeEvents == null || activeEvents.isEmpty()) {
             return false;
         }
 
         return activeEvents.stream()
-                .anyMatch(event -> event.getEventId().equals(eventId) && event.isActive());
+                .anyMatch(event -> event.getActivityId().equals(eventId) && event.isActive());
     }
 
     /**

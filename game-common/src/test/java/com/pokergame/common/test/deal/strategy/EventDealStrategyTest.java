@@ -1,6 +1,6 @@
 package com.pokergame.common.test.deal.strategy;
 
-import com.pokergame.common.event.ActiveEvent;
+import com.pokergame.common.activity.ActiveActivity;
 import com.pokergame.common.deal.DealContext;
 import com.pokergame.common.deal.HandRank;
 import com.pokergame.common.deal.strategy.EventDealStrategy;
@@ -39,8 +39,8 @@ class EventDealStrategyTest {
     void testWithEventReturnsRank() {
         EventDealStrategy strategy = new EventDealStrategy(GameType.DOUDIZHU, "spring_event", 0.5, HandRank.DOUDIZHU_BOMB, null);
 
-        ActiveEvent event = ActiveEvent.builder()
-                .eventId("spring_event")
+        ActiveActivity event = ActiveActivity.builder()
+                .activityId("spring_event")
                 .eventName("春节活动")
                 .isActive(true)
                 .startTime(System.currentTimeMillis() - 10000)
@@ -72,8 +72,8 @@ class EventDealStrategyTest {
     void testExpiredEventReturnsNull() {
         EventDealStrategy strategy = new EventDealStrategy(GameType.DOUDIZHU, "expired_event", 0.2, HandRank.DOUDIZHU_BOMB, null);
 
-        ActiveEvent event = ActiveEvent.builder()
-                .eventId("expired_event")
+        ActiveActivity event = ActiveActivity.builder()
+                .activityId("expired_event")
                 .eventName("过期活动")
                 .isActive(true)
                 .startTime(System.currentTimeMillis() - 200000)
@@ -103,8 +103,8 @@ class EventDealStrategyTest {
 
         EventDealStrategy strategy = new EventDealStrategy(GameType.DOUDIZHU, "multi_event", 0.5, null, targetRanks);
 
-        ActiveEvent event = ActiveEvent.builder()
-                .eventId("multi_event")
+        ActiveActivity event = ActiveActivity.builder()
+                .activityId("multi_event")
                 .eventName("多牌型活动")
                 .isActive(true)
                 .startTime(System.currentTimeMillis() - 10000)

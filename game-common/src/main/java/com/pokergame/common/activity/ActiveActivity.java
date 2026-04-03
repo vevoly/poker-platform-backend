@@ -1,4 +1,4 @@
-package com.pokergame.common.event;
+package com.pokergame.common.activity;
 
 import lombok.Builder;
 import lombok.Data;
@@ -14,10 +14,10 @@ import java.util.Map;
  */
 @Data
 @Builder
-public class ActiveEvent {
+public class ActiveActivity {
 
     /** 活动ID */
-    private String eventId;
+    private String activityId;
 
     /** 活动名称 */
     private String eventName;

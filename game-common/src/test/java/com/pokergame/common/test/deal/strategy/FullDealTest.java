@@ -2,11 +2,10 @@ package com.pokergame.common.test.deal.strategy;
 
 import com.pokergame.common.card.Card;
 import com.pokergame.common.deal.*;
-import com.pokergame.common.deal.dealer.*;
 import com.pokergame.common.deal.dealer.impl.BullDealer;
 import com.pokergame.common.deal.dealer.impl.DoudizhuDealer;
 import com.pokergame.common.deal.dealer.impl.TexasDealer;
-import com.pokergame.common.event.ActiveEvent;
+import com.pokergame.common.activity.ActiveActivity;
 import com.pokergame.common.item.ActiveItem;
 import com.pokergame.common.game.GameType;
 import org.junit.jupiter.api.DisplayName;
@@ -266,8 +265,8 @@ public class FullDealTest {
                 .build();
 
         // 创建活动
-        ActiveEvent springEvent = ActiveEvent.builder()
-                .eventId("spring_festival")
+        ActiveActivity springEvent = ActiveActivity.builder()
+                .activityId("spring_festival")
                 .eventName("春节活动")
                 .isActive(true)
                 .startTime(System.currentTimeMillis() - 10000)

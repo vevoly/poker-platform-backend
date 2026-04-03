@@ -1,6 +1,6 @@
 package com.pokergame.common.deal;
 
-import com.pokergame.common.event.ActiveEvent;
+import com.pokergame.common.activity.ActiveActivity;
 import com.pokergame.common.item.ActiveItem;
 import com.pokergame.common.deal.strategy.NormalDistributionStrategy;
 import com.pokergame.common.game.GameType;
@@ -43,7 +43,7 @@ public class MultiPlayerDealContext {
 
     // 道具/活动数据
     private List<List<ActiveItem>> activeItemsList;
-    private List<List<ActiveEvent>> activeEventsList;
+    private List<List<ActiveActivity>> activeEventsList;
 
     // 全局统计（用于正态分布）
     private NormalDistributionStrategy.GlobalStatistics globalStatistics;
