@@ -1,7 +1,6 @@
 package com.pokergame.core.turn;
 
-import com.pokergame.core.player.GamePlayer;
-import com.pokergame.core.room.GameRoom;
+import com.pokergame.core.temp.GameRoom;
 import lombok.extern.slf4j.Slf4j;
 
 /**

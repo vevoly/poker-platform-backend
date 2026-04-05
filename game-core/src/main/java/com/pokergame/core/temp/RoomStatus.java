@@ -1,4 +1,4 @@
-package com.pokergame.core.room;
+package com.pokergame.core.temp;
 
 /**
  * 房间状态枚举

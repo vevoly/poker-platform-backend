@@ -1,4 +1,4 @@
-package com.pokergame.core.room;
+package com.pokergame.core.temp;
 
 import lombok.extern.slf4j.Slf4j;
 

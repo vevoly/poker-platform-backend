@@ -1,4 +1,4 @@
-package com.pokergame.core.player;
+package com.pokergame.core.temp;
 
 /**
  * 玩家状态枚举

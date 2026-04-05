@@ -32,6 +32,7 @@
         <module>game-broker</module>
         <module>game-test</module>
         <module>services/service-user</module>
+        <module>games/game-logic-doudizhu</module>
     </modules>
 
     <dependencyManagement>
@@ -41,6 +42,12 @@
                 <artifactId>game-common</artifactId>
                 <version>${revision}</version>
             </dependency>
+            <dependency>
+                <groupId>com.pokergame</groupId>
+                <artifactId>game-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.iohao.game</groupId>
                 <artifactId>run-one-netty</artifactId>
@@ -69,6 +76,11 @@
             <dependency>
                 <groupId>com.iohao.game</groupId>
                 <artifactId>light-client</artifactId>
+                <version>${ioGame.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.iohao.game</groupId>
+                <artifactId>light-game-room</artifactId>
                 <version>${ioGame.version}</version>
             </dependency>
 

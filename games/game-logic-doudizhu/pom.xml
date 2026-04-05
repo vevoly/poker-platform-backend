@@ -6,29 +6,20 @@
     <parent>
         <groupId>com.pokergame</groupId>
         <artifactId>game-platform-backend</artifactId>
+        <relativePath>../../pom.xml</relativePath>
         <version>${revision}</version>
     </parent>
 
-    <artifactId>game-core</artifactId>
-    <name>Game Core</name>
+    <artifactId>game-logic-doudizhu</artifactId>
+    <name>Game Logic DouDiZhu</name>
     <version>${revision}</version>
-    <description>游戏平台核心模块</description>
+    <description>斗地主游戏逻辑服</description>
 
     <dependencies>
+
         <dependency>
             <groupId>com.pokergame</groupId>
-            <artifactId>game-common</artifactId>
-        </dependency>
-
-        <!-- ioGame 核心 -->
-        <dependency>
-            <groupId>com.iohao.game</groupId>
-            <artifactId>run-one-netty</artifactId>
-        </dependency>
-        <!-- ioGame 房间 -->
-        <dependency>
-            <groupId>com.iohao.game</groupId>
-            <artifactId>light-game-room</artifactId>
+            <artifactId>game-core</artifactId>
         </dependency>
 
         <!-- 日志 -->
@@ -43,6 +34,7 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+
     </dependencies>
 
     <build>

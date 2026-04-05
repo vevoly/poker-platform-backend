@@ -1,4 +1,4 @@
-package com.pokergame.core.player;
+package com.pokergame.core.temp;
 
 import lombok.Data;
 

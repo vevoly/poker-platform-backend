@@ -3,7 +3,7 @@ package com.pokergame.common.cmd;
 public interface UserCmd {
 
     /** 用户模块 - 主cmd */
-    int CMD = GameModuleCmd.USER_MODULE_CMD;
+    int CMD = GameModuleCmd.USER_CMD;
 
     /** 用户登录 */
     int LOGIN = 1;
