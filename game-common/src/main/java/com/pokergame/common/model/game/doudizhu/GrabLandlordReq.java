@@ -1,4 +1,4 @@
-package com.pokergame.common.model.room;
+package com.pokergame.common.model.game.doudizhu;
 
 import com.baidu.bjf.remoting.protobuf.annotation.ProtobufClass;
 import lombok.AccessLevel;

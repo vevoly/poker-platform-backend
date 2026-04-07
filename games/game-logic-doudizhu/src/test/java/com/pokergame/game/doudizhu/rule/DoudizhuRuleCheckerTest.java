@@ -13,6 +13,8 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -164,9 +166,12 @@ class DoudizhuRuleCheckerTest {
     @Test
     @DisplayName("测试炸弹出牌")
     void testBombCards() {
-        room.setLastPlayCards(null);
-        room.setLastPattern(null);
+        // 先让上家出一张牌（非首出）
+        List<Card> lastCards = Arrays.asList(Card.of(2)); // ♠5
+        room.setLastPlayCards(lastCards);
+        room.updateLastPlay(1002L, lastCards, CardPattern.SINGLE, 5, 0);
 
+        // 当前玩家出炸弹
         List<Card> cards = Arrays.asList(
                 Card.of(0), Card.of(13), Card.of(26), Card.of(39) // 四张3
         );
@@ -182,9 +187,12 @@ class DoudizhuRuleCheckerTest {
     @Test
     @DisplayName("测试王炸出牌")
     void testRocketCards() {
-        room.setLastPlayCards(null);
-        room.setLastPattern(null);
+        // 先让上家出一张牌（非首出）
+        List<Card> lastCards = Arrays.asList(Card.of(2)); // ♠5
+        room.setLastPlayCards(lastCards);
+        room.updateLastPlay(1002L, lastCards, CardPattern.SINGLE, 5, 0);
 
+        // 当前玩家出王炸
         List<Card> cards = Arrays.asList(Card.of(52), Card.of(53)); // 小王, 大王
 
         ValidationResult result = ruleChecker.validatePlay(1001L, cards);
@@ -352,10 +360,26 @@ class DoudizhuRuleCheckerTest {
     @DisplayName("测试手牌中没有要出的牌")
     void testCardsNotInHand() {
         room.setLastPlayCards(null);
-        room.setLastPattern(null);
 
-        // 出一张不存在的牌（ID=99 不存在）
-        List<Card> cards = Arrays.asList(Card.of(99));
+        // 获取玩家手牌中已有的牌 ID
+        List<Card> handCards = player.getHandCards();
+        Set<Integer> handCardIds = handCards.stream()
+                .map(Card::getId)
+                .collect(Collectors.toSet());
+
+        // 找一个不在手牌中的有效牌 ID（0-53 范围内）
+        int testCardId = -1;
+        for (int i = 0; i < 54; i++) {
+            if (!handCardIds.contains(i)) {
+                testCardId = i;
+                break;
+            }
+        }
+
+        // 确保找到了测试用的牌 ID
+        assertThat(testCardId).isNotEqualTo(-1);
+
+        List<Card> cards = Arrays.asList(Card.of(testCardId));
 
         ValidationResult result = ruleChecker.validatePlay(1001L, cards);
 
@@ -401,33 +425,48 @@ class DoudizhuRuleCheckerTest {
         assertThat(result.getErrorMessage()).isEqualTo("不是你的回合");
     }
 
-    @Test
-    @DisplayName("测试游戏未开始时不能出牌")
-    void testGameNotStartedCannotPlay() {
-        room.setGameStatus(DoudizhuGameStatus.WAITING);
-        room.setLastPlayCards(null);
-        room.setLastPattern(null);
-
-        List<Card> cards = Arrays.asList(Card.of(0));
-
-        ValidationResult result = ruleChecker.validatePlay(1001L, cards);
-
-        assertThat(result.isValid()).isFalse();
-        // 应该在调用前就校验游戏状态，这里由 Action 层处理
-        // RuleChecker 只校验回合和手牌
-    }
-
     // ==================== 辅助方法 ====================
 
     /**
-     * 创建完整的17张手牌（用于手牌完整性测试）
+     * 创建完整的手牌，确保测试中使用的所有牌都存在
      */
     private List<Card> createFullHandCards() {
         List<Card> handCards = new ArrayList<>();
-        // 添加各种牌值，确保手牌完整
-        for (int i = 0; i < 17; i++) {
-            handCards.add(Card.of(i));
-        }
+
+        // ========== 添加各种 3 的牌 ==========
+        handCards.add(Card.of(0));   // ♠3
+        handCards.add(Card.of(13));  // ♥3
+        handCards.add(Card.of(26));  // ♣3
+        handCards.add(Card.of(39));  // ♦3
+
+        // ========== 添加各种 4 的牌 ==========
+        handCards.add(Card.of(1));   // ♠4
+        handCards.add(Card.of(14));  // ♥4
+        handCards.add(Card.of(27));  // ♣4
+        handCards.add(Card.of(40));  // ♦4
+
+        // ========== 添加各种 5 的牌 ==========
+        handCards.add(Card.of(2));   // ♠5
+        handCards.add(Card.of(15));  // ♥5
+        handCards.add(Card.of(28));  // ♣5
+        handCards.add(Card.of(41));  // ♦5
+
+        // ========== 添加各种 6 的牌 ==========
+        handCards.add(Card.of(3));   // ♠6
+        handCards.add(Card.of(16));  // ♥6
+        handCards.add(Card.of(29));  // ♣6
+        handCards.add(Card.of(42));  // ♦6
+
+        // ========== 添加各种 7 的牌（用于顺子） ==========
+        handCards.add(Card.of(4));   // ♠7
+
+        // ========== 添加大小王 ==========
+        handCards.add(Card.of(52));  // 小王
+        handCards.add(Card.of(53));  // 大王
+
+        // 确保手牌数量足够
+        System.out.println("手牌数量: " + handCards.size());
+
         return handCards;
     }
 }

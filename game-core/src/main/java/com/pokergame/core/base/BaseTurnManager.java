@@ -1,5 +1,6 @@
 package com.pokergame.core.base;
 
+import com.iohao.game.common.kit.concurrent.TaskListener;
 import com.iohao.game.common.kit.concurrent.timer.delay.DelayTaskKit;
 import com.iohao.game.widget.light.room.Room;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +52,41 @@ public abstract class BaseTurnManager<R extends Room> {
                 .task();
 
         log.debug("启动超时定时器: {}秒", seconds);
+    }
+
+    /**
+     * 设置超时回调（使用默认超时时间）
+     *
+     * @param onTimeout 超时回调
+     */
+    public void setTimeout(Runnable onTimeout) {
+        setTimeout(DEFAULT_TIMEOUT_SECONDS, onTimeout);
+    }
+
+    /**
+     * 设置超时回调（自定义超时时间）
+     *
+     * @param seconds 超时秒数
+     * @param onTimeout 超时回调
+     */
+    /**
+     * 设置超时回调（自定义超时时间）
+     *
+     * @param seconds 超时秒数
+     * @param onTimeout 超时回调（Runnable）
+     */
+    public void setTimeout(int seconds, Runnable onTimeout) {
+        cancelTimeout();
+
+        String taskId = generateTaskId();
+        currentTaskId.set(taskId);
+
+        // 将 Runnable 包装成 TaskListener
+        DelayTaskKit.of(taskId, (TaskListener) onTimeout::run)
+                .plusTime(Duration.ofSeconds(seconds))
+                .task();
+
+        log.debug("设置超时定时器: {}秒", seconds);
     }
 
     /**

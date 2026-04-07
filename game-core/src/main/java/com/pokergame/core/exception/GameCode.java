@@ -85,6 +85,9 @@ public enum GameCode implements MsgExceptionInfo {
     /** 首出不能出炸弹 */
     FIRST_PLAY_NO_BOMB(30006, "首出不能出炸弹"),
 
+    /** 上家牌型无效 */
+    INVALID_PREVIOUS_PATTERN(30007, "上家牌型无效"),
+
     // ========== 游戏错误 (40000-49999) ==========
 
     /** 游戏未开始 */
@@ -98,6 +101,15 @@ public enum GameCode implements MsgExceptionInfo {
 
     /** 发牌失败 */
     DEAL_CARDS_FAILED(40004, "发牌失败"),
+
+    /** 叫地主流程未初始化 */
+    BIDDING_NOT_INITIALIZED(41001, "叫地主流程未初始化"),
+
+    /** 叫地主状态错误 */
+    BIDDING_STATE_ERROR(41002, "叫地主状态错误"),
+
+    /** 不是叫地主回合 */
+    NOT_BIDDING_TURN(41003, "不是你的叫地主回合"),
 
     // ========== 系统错误 (50000-59999) ==========
 

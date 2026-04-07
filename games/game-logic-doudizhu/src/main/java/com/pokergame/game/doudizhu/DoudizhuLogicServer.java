@@ -4,13 +4,18 @@ import com.iohao.game.action.skeleton.core.BarSkeleton;
 import com.iohao.game.action.skeleton.core.BarSkeletonBuilderParamConfig;
 import com.iohao.game.action.skeleton.core.flow.internal.DebugInOut;
 import com.iohao.game.bolt.broker.client.AbstractBrokerClientStartup;
+import com.iohao.game.bolt.broker.client.BrokerClientApplication;
 import com.iohao.game.bolt.broker.core.client.BrokerAddress;
 import com.iohao.game.bolt.broker.core.client.BrokerClient;
 import com.iohao.game.bolt.broker.core.client.BrokerClientBuilder;
 import com.iohao.game.bolt.broker.core.common.IoGameGlobalConfig;
+import com.iohao.game.common.kit.NetworkKit;
+import com.iohao.game.external.core.netty.simple.NettySimpleHelper;
 import com.pokergame.game.doudizhu.action.RoomAction;
 import com.pokergame.game.doudizhu.config.DoudizhuOperationConfigRunner;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
 
 /**
  * 斗地主逻辑服启动类
@@ -29,11 +34,18 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DoudizhuLogicServer extends AbstractBrokerClientStartup {
 
+    public static void main(String[] args) {
+        BrokerClientApplication.start(new DoudizhuLogicServer());
+    }
+
     @Override
     public BarSkeleton createBarSkeleton() {
         // 1. 配置 Action 扫描路径
         var config = new BarSkeletonBuilderParamConfig()
-                .scanActionPackage(RoomAction.class);
+                // 扫描类所在的包
+                .scanActionPackage(RoomAction.class)
+                // 开启广播日志
+                .setBroadcastLog(true);
 
         // 2. 创建构建器
         var builder = config.createBuilder();
@@ -50,26 +62,13 @@ public class DoudizhuLogicServer extends AbstractBrokerClientStartup {
     @Override
     public BrokerClientBuilder createBrokerClientBuilder() {
         BrokerClientBuilder builder = BrokerClient.newBuilder();
-        builder.appName("doudizhuLogicServer");
+        builder.appName("斗地主逻辑服");
         return builder;
     }
 
     @Override
     public BrokerAddress createBrokerAddress() {
-        return new BrokerAddress("127.0.0.1", IoGameGlobalConfig.brokerPort);
+        return new BrokerAddress(NetworkKit.LOCAL_IP, IoGameGlobalConfig.brokerPort);
     }
 
-    public static void main(String[] args) {
-        log.info("========================================");
-        log.info("斗地主逻辑服启动中...");
-        log.info("========================================");
-
-        // 启动逻辑服
-        DoudizhuLogicServer server = new DoudizhuLogicServer();
-
-        // 注意：实际启动需要通过 NettySimpleHelper 或一体化启动
-        // 这里只是定义，实际启动在 AllInOneServer 或独立启动类中
-
-        log.info("斗地主逻辑服初始化完成");
-    }
 }

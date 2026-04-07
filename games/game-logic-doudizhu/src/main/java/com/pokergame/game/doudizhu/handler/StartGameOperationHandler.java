@@ -8,6 +8,7 @@ import com.pokergame.common.deal.dealer.Dealer;
 import com.pokergame.common.deal.dealer.impl.DoudizhuDealer;
 import com.pokergame.common.game.GameType;
 import com.pokergame.core.exception.GameCode;
+import com.pokergame.game.doudizhu.bidding.BiddingManager;
 import com.pokergame.game.doudizhu.broadcast.DoudizhuBroadcastKit;
 import com.pokergame.game.doudizhu.room.DoudizhuPlayer;
 import com.pokergame.game.doudizhu.room.DoudizhuRoom;
@@ -25,7 +26,8 @@ import java.util.stream.Collectors;
  * 1. 校验开始游戏条件
  * 2. 调用 DoudizhuDealer 发牌
  * 3. 初始化游戏状态
- * 4. 广播游戏开始
+ * 4. 初始化叫地主管理器
+ * 5. 广播游戏开始
  *
  * @author poker-platform
  */
@@ -81,18 +83,19 @@ public final class StartGameOperationHandler implements OperationHandler {
             log.debug("玩家 {} 获得 {} 张手牌", player.getUserId(), hand.size());
         }
 
-        // ==================== 4. 确定出牌顺序 ====================
-        // 默认按玩家加入顺序，第一个玩家为先手
-        List<Long> playOrder = new ArrayList<>(playerIds);
-        long firstPlayerId = playerIds.get(0);
-        room.setPlayOrder(playOrder, firstPlayerId);
+        // ==================== 4. 初始化叫地主管理器 ====================
+        BiddingManager biddingManager = new BiddingManager(room, playerIds);
+        room.setBiddingManager(biddingManager);
 
         // ==================== 5. 更新游戏状态 ====================
         room.changeGameStatus(DoudizhuGameStatus.BIDDING);
 
+        // ==================== 6. 开始叫地主流程 ====================
+        biddingManager.start();
+
         log.info("房间 {} 游戏开始，进入叫地主阶段", room.getRoomId());
 
-        // ==================== 6. 广播游戏开始 ====================
+        // ==================== 7. 广播游戏开始 ====================
         DoudizhuBroadcastKit.broadcastGameStart(room);
     }
 

@@ -9,6 +9,7 @@ import com.pokergame.common.pattern.PatternRecognizerFactory;
 import com.pokergame.common.pattern.PatternResult;
 import com.pokergame.common.rule.ValidationResult;
 import com.pokergame.core.base.BaseRuleChecker;
+import com.pokergame.core.exception.GameCode;
 import com.pokergame.game.doudizhu.room.DoudizhuPlayer;
 import com.pokergame.game.doudizhu.room.DoudizhuRoom;
 import lombok.extern.slf4j.Slf4j;
@@ -62,9 +63,9 @@ public class DoudizhuRuleChecker extends BaseRuleChecker<DoudizhuRoom, DoudizhuP
     protected ValidationResult validateFirstPlay(PatternResult current, List<Card> cards) {
         if (current.getPattern() == CardPattern.BOMB ||
                 current.getPattern() == CardPattern.ROCKET) {
-            return ValidationResult.failure(30006, "首出不能出炸弹");
+            return ValidationResult.failure(GameCode.FIRST_PLAY_NO_BOMB.getCode(), GameCode.FIRST_PLAY_NO_BOMB.getMsg());
         }
-        return ValidationResult.success(current.getPattern(), current.getMainRank(), 0);
+        return ValidationResult.success(current.getPattern(), current.getMainRank(), current.getSubRank());
     }
 
     /**

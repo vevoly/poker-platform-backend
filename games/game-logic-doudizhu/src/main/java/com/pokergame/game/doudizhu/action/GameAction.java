@@ -4,11 +4,10 @@ import com.iohao.game.action.skeleton.annotation.ActionController;
 import com.iohao.game.action.skeleton.annotation.ActionMethod;
 import com.iohao.game.action.skeleton.core.exception.MsgException;
 import com.iohao.game.action.skeleton.core.flow.FlowContext;
-import com.pokergame.common.card.CardPattern;
 import com.pokergame.common.cmd.DoudizhuCmd;
 import com.pokergame.common.game.GameType;
 
-import com.pokergame.common.model.room.GrabLandlordReq;
+import com.pokergame.common.model.game.doudizhu.GrabLandlordReq;
 import com.pokergame.common.model.room.PassReq;
 import com.pokergame.common.model.room.PlayCardReq;
 import com.pokergame.common.pattern.PatternRecognizer;
@@ -16,6 +15,7 @@ import com.pokergame.common.pattern.PatternRecognizerFactory;
 import com.pokergame.common.rule.ValidationResult;
 
 import com.pokergame.core.exception.GameCode;
+import com.pokergame.game.doudizhu.bidding.BiddingManager;
 import com.pokergame.game.doudizhu.broadcast.DoudizhuBroadcastKit;
 import com.pokergame.game.doudizhu.enums.DoudizhuGameStatus;
 import com.pokergame.game.doudizhu.enums.InternalOperation;
@@ -82,15 +82,11 @@ public class GameAction {
         DoudizhuGameStatus status = room.getGameStatus();
         GameCode.ILLEGAL_OPERATION.assertTrueThrows(status != DoudizhuGameStatus.BIDDING);
 
-        DoudizhuPlayer player = room.getDoudizhuPlayer(userId);
-        player.setBidMultiple(req.getMultiple());
+        // 获取叫地主管理器并处理
+        BiddingManager biddingManager = room.getBiddingManager();
+        GameCode.BIDDING_NOT_INITIALIZED.assertTrueThrows(biddingManager == null);
 
-        log.info("玩家 {} 抢地主，倍数: {}", userId, req.getMultiple());
-
-        // 广播抢地主
-        DoudizhuBroadcastKit.broadcastGrabLandlord(userId, req.getMultiple(), room);
-
-        // TODO: 叫地主流程逻辑（确定地主、发底牌、开始出牌）
+        biddingManager.handleGrab(userId, req.getMultiple());
     }
 
     /**
@@ -109,12 +105,11 @@ public class GameAction {
         DoudizhuGameStatus status = room.getGameStatus();
         GameCode.ILLEGAL_OPERATION.assertTrueThrows(status != DoudizhuGameStatus.BIDDING);
 
-        log.info("玩家 {} 不抢地主", userId);
+        // 获取叫地主管理器并处理
+        BiddingManager biddingManager = room.getBiddingManager();
+        GameCode.BIDDING_NOT_INITIALIZED.assertTrueThrows(biddingManager == null);
 
-        // 广播不抢地主
-        DoudizhuBroadcastKit.broadcastNotGrab(userId, room);
-
-        // TODO: 叫地主流程逻辑（轮到下一个玩家）
+        biddingManager.handleNotGrab(userId);
     }
 
     // ==================== 出牌操作 ====================
@@ -175,6 +170,11 @@ public class GameAction {
 
         // 切换到下一个玩家
         room.nextTurn();
+
+        // 重置超时定时器
+        if (room.getTurnManager() != null) {
+            room.getTurnManager().resetTimeout();
+        }
     }
 
     /**
@@ -205,5 +205,10 @@ public class GameAction {
 
         // 切换到下一个玩家
         room.nextTurn();
+
+        // 重置超时定时器
+        if (room.getTurnManager() != null) {
+            room.getTurnManager().resetTimeout();
+        }
     }
 }

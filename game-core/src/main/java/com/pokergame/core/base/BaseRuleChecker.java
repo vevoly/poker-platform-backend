@@ -8,6 +8,7 @@ import com.pokergame.common.pattern.PatternRecognizerFactory;
 import com.pokergame.common.pattern.PatternResult;
 import com.pokergame.common.rule.ValidationResult;
 import com.pokergame.common.game.GameType;
+import com.pokergame.core.exception.GameCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -101,22 +102,22 @@ public abstract class BaseRuleChecker<R, P> {
     public final ValidationResult validatePlay(long playerId, List<Card> cards) {
         // 1. 回合校验
         if (!isCurrentPlayer(playerId)) {
-            return ValidationResult.failure(20002, "不是你的回合");
+            return ValidationResult.failure(GameCode.NOT_YOUR_TURN.getCode(), GameCode.NOT_YOUR_TURN.getMsg());
         }
 
         // 2. 手牌完整性校验
         P player = getPlayer(playerId);
         if (player == null) {
-            return ValidationResult.failure(20001, "玩家不在房间中");
+            return ValidationResult.failure(GameCode.PLAYER_NOT_IN_ROOM.getCode(), GameCode.PLAYER_NOT_IN_ROOM.getMsg());
         }
         if (!hasCardsInHand(player, cards)) {
-            return ValidationResult.failure(30003, "手牌中没有这些牌");
+            return ValidationResult.failure(GameCode.CARDS_NOT_IN_HAND.getCode(), GameCode.CARDS_NOT_IN_HAND.getMsg());
         }
 
         // 3. 牌型识别（无状态 - 调用 game-common）
         PatternResult current = recognizer.recognize(cards);
         if (current == null || current.getPattern() == CardPattern.PASS) {
-            return ValidationResult.failure(30001, "无效的牌型");
+            return ValidationResult.failure(GameCode.INVALID_PATTERN.getCode(), GameCode.INVALID_PATTERN.getMsg());
         }
 
         // 4. 首出校验
@@ -133,7 +134,7 @@ public abstract class BaseRuleChecker<R, P> {
 
         PatternResult last = recognizer.recognize(lastPlayCards);
         if (last == null) {
-            return ValidationResult.failure(30001, "上家牌型无效");
+            return ValidationResult.failure(GameCode.INVALID_PREVIOUS_PATTERN.getCode(), GameCode.INVALID_PREVIOUS_PATTERN.getMsg());
         }
 
         // 6. 大小比较（无状态 - 调用 game-common）
@@ -143,7 +144,7 @@ public abstract class BaseRuleChecker<R, P> {
         );
 
         if (!canBeat) {
-            return ValidationResult.failure(30002, "不能压过上家的牌");
+            return ValidationResult.failure(GameCode.CANNOT_BEAT.getCode(), GameCode.CANNOT_BEAT.getMsg());
         }
 
         // 7. 子类钩子方法

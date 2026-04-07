@@ -3,7 +3,7 @@ package com.pokergame.game.doudizhu.room;
 import com.iohao.game.widget.light.room.SimpleRoom;
 import com.pokergame.common.card.Card;
 import com.pokergame.common.card.CardPattern;
-import com.pokergame.common.pattern.PatternResult;
+import com.pokergame.game.doudizhu.bidding.BiddingManager;
 import com.pokergame.game.doudizhu.enums.DoudizhuGameStatus;
 import com.pokergame.game.doudizhu.state.DoudizhuGameState;
 import com.pokergame.game.doudizhu.turn.DoudizhuTurnManager;
@@ -51,6 +51,10 @@ public class DoudizhuRoom extends SimpleRoom {
     /** 回合管理器 */
     private DoudizhuTurnManager turnManager;
 
+    /** 叫地主管理器 */
+    private BiddingManager biddingManager;
+
+
     // ==================== 游戏数据 ====================
 
     /** 出牌顺序列表（玩家ID列表，按座位顺序） */
@@ -78,6 +82,9 @@ public class DoudizhuRoom extends SimpleRoom {
 
     /** 地主ID */
     private long landlordId = 0;
+
+    /** 叫地主倍数 */
+    private int currentMultiple = 1;
 
     /** 地主底牌（3张） */
     private List<Card> landlordExtraCards = new ArrayList<>();
@@ -127,6 +134,16 @@ public class DoudizhuRoom extends SimpleRoom {
      * @param player 斗地主玩家
      */
     public void addDoudizhuPlayer(DoudizhuPlayer player) {
+        // 检查游戏是否已开始
+        if (gameStatus != DoudizhuGameStatus.WAITING && gameStatus != DoudizhuGameStatus.READY) {
+            log.warn("游戏已开始，不能加入新玩家。当前状态: {}", gameStatus);
+            return;
+        }
+        // 检查房间是否已满
+        if (isFull()) {
+            log.warn("房间已满，不能加入新玩家。房间: {}, 玩家: {}", getRoomId(), player.getUserId());
+            return;
+        }
         getPlayerMap().put(player.getUserId(), player);
         if (!player.isRobot()) {
             getRealPlayerMap().put(player.getUserId(), player);
@@ -181,6 +198,13 @@ public class DoudizhuRoom extends SimpleRoom {
     }
 
     // ==================== 游戏流程控制 ====================
+
+    /** 开始叫地主流程 */
+    public void startBidding() {
+        if (biddingManager != null) {
+            biddingManager.start();
+        }
+    }
 
     /**
      * 获取当前回合玩家
@@ -283,15 +307,52 @@ public class DoudizhuRoom extends SimpleRoom {
      *
      * @param newStatus 新状态
      */
-    public void changeGameStatus(DoudizhuGameStatus newStatus) {
+    public boolean changeGameStatus(DoudizhuGameStatus newStatus) {
+        // 检查状态转换是否合法
+        if (!isValidTransition(this.gameStatus, newStatus)) {
+            log.warn("非法的状态转换: {} -> {}", this.gameStatus, newStatus);
+            return false;
+        }
+
         this.gameStatus = newStatus;
         log.info("房间 {} 状态变更: {} -> {}", getRoomId(), gameStatus, newStatus);
+        return true;
     }
 
     @Override
     public String toString() {
         return String.format("DoudizhuRoom{roomId=%d, gameStatus=%s, playerCount=%d, maxPlayers=%d, ownerId=%d}",
                 getRoomId(), gameStatus, getPlayerCount(), maxPlayers, ownerId);
+    }
+
+    /**
+     * 检查状态转换是否合法
+     */
+    private boolean isValidTransition(DoudizhuGameStatus current, DoudizhuGameStatus target) {
+        // 相同状态不需要转换
+        if (current == target) {
+            return true;
+        }
+
+        switch (current) {
+            case WAITING:
+                // WAITING 可以转换为 READY 或 BIDDING（直接开始）
+                return target == DoudizhuGameStatus.READY || target == DoudizhuGameStatus.BIDDING;
+            case READY:
+                // READY 可以转换为 BIDDING（开始游戏）
+                return target == DoudizhuGameStatus.BIDDING;
+            case BIDDING:
+                // BIDDING 可以转换为 PLAYING（叫地主结束）或 FINISHED（异常结束）
+                return target == DoudizhuGameStatus.PLAYING || target == DoudizhuGameStatus.FINISHED;
+            case PLAYING:
+                // PLAYING 只能转换为 FINISHED（游戏结束）
+                return target == DoudizhuGameStatus.FINISHED;
+            case FINISHED:
+                // FINISHED 可以转换为 WAITING（重置）或直接销毁
+                return target == DoudizhuGameStatus.WAITING;
+            default:
+                return false;
+        }
     }
 
 }

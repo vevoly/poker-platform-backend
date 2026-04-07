@@ -155,6 +155,27 @@ public class DoudizhuBroadcastKit {
         log.debug("广播不抢地主: userId={}", userId);
     }
 
+    /**
+     * 广播叫地主回合
+     *
+     * @param playerId 当前玩家ID
+     * @param round 第几轮
+     * @param room 房间
+     */
+    public static void broadcastBiddingTurn(long playerId, int round, DoudizhuRoom room) {
+        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.cmd, DoudizhuCmd.BIDDING_TURN_BROADCAST);
+
+        BiddingTurnData data = new BiddingTurnData();
+        data.setPlayerId(playerId);
+        data.setRound(round);
+        data.setTimeoutSeconds(15);
+
+        room.getAggregationContext().broadcast(cmdInfo, data);
+        log.debug("广播叫地主回合: playerId={}, round={}", playerId, round);
+    }
+
+
+
     // ==================== 广播数据类 ====================
 
     @Data
@@ -205,5 +226,12 @@ public class DoudizhuBroadcastKit {
     @Data
     public static class NotGrabBroadcastData {
         private long userId;
+    }
+
+    @Data
+    public static class BiddingTurnData {
+        private long playerId;
+        private int round;
+        private int timeoutSeconds;
     }
 }

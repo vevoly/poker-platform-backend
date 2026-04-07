@@ -71,21 +71,25 @@ public interface DoudizhuCmd {
     /** 游戏开始广播 */
     int GAME_START_BROADCAST = 103;
 
+    /** 叫地主回合广播 */
+    int BIDDING_TURN_BROADCAST = 104;
+
     /** 发牌广播 */
-    int DEAL_CARDS_BROADCAST = 104;
+    int DEAL_CARDS_BROADCAST = 105;
 
     /** 叫地主广播 */
-    int GRAB_LANDLORD_BROADCAST = 105;
+    int GRAB_LANDLORD_BROADCAST = 106;
 
     /** 不叫地主广播 */
-    int NOT_GRAB_LANDLORD_BROADCAST = 106;
+    int NOT_GRAB_LANDLORD_BROADCAST = 107;
 
     /** 出牌广播 */
-    int PLAY_CARD_BROADCAST = 107;
+    int PLAY_CARD_BROADCAST = 108;
 
     /** 过牌广播 */
-    int PASS_BROADCAST = 108;
+    int PASS_BROADCAST = 109;
 
     /** 游戏结束广播 */
-    int GAME_END_BROADCAST = 109;
+    int GAME_END_BROADCAST = 110;
+
 }

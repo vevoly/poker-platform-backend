@@ -16,7 +16,11 @@
         <!-- 公共模块 -->
         <dependency>
             <groupId>com.pokergame</groupId>
-            <artifactId>game-common</artifactId>
+            <artifactId>game-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.pokergame</groupId>
+            <artifactId>game-logic-doudizhu</artifactId>
             <version>${revision}</version>
         </dependency>
 
