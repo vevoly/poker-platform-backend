@@ -84,7 +84,7 @@ public class GameAction {
 
         // 获取叫地主管理器并处理
         BiddingManager biddingManager = room.getBiddingManager();
-        GameCode.BIDDING_NOT_INITIALIZED.assertTrueThrows(biddingManager == null);
+        GameCode.DOUDIZHU_BIDDING_NOT_INITIALIZED.assertTrueThrows(biddingManager == null);
 
         biddingManager.handleGrab(userId, req.getMultiple());
     }
@@ -107,7 +107,7 @@ public class GameAction {
 
         // 获取叫地主管理器并处理
         BiddingManager biddingManager = room.getBiddingManager();
-        GameCode.BIDDING_NOT_INITIALIZED.assertTrueThrows(biddingManager == null);
+        GameCode.DOUDIZHU_BIDDING_NOT_INITIALIZED.assertTrueThrows(biddingManager == null);
 
         biddingManager.handleNotGrab(userId);
     }

@@ -23,6 +23,11 @@
         <lombok.version>1.18.34</lombok.version>
         <logback.version>1.4.14</logback.version>
         <junit.version>4.13.2</junit.version>
+        <spring-boot.version>3.2.0</spring-boot.version>
+        <hutool.version>5.8.22</hutool.version>
+
+        <jwt.version>4.4.0</jwt.version>
+        <jackson.version>2.15.3</jackson.version>
     </properties>
 
     <modules>
@@ -33,6 +38,8 @@
         <module>game-test</module>
         <module>services/service-user</module>
         <module>games/game-logic-doudizhu</module>
+        <module>starters/game-starter-redis</module>
+        <module>starters/game-starter-mybatis</module>
     </modules>
 
     <dependencyManagement>
@@ -45,6 +52,11 @@
             <dependency>
                 <groupId>com.pokergame</groupId>
                 <artifactId>game-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.pokergame</groupId>
+                <artifactId>game-starter-redis</artifactId>
                 <version>${revision}</version>
             </dependency>
 
@@ -84,6 +96,37 @@
                 <version>${ioGame.version}</version>
             </dependency>
 
+            <!-- Spring Boot 配置处理器 -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-configuration-processor</artifactId>
+                <version>${spring-boot.version}</version>
+                <optional>true</optional>
+            </dependency>
+            <!-- Spring Boot Starter -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <!-- Spring Boot Web (用于获取Request中的用户信息) -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-web</artifactId>
+                <optional>true</optional>
+                <version>${spring-boot.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cn.hutool</groupId>
+                <artifactId>hutool-all</artifactId>
+                <version>${hutool.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>

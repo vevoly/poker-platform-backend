@@ -1,5 +1,6 @@
 package com.pokergame.core.exception;
 
+import com.iohao.game.action.skeleton.core.exception.MsgException;
 import com.iohao.game.action.skeleton.core.exception.MsgExceptionInfo;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,15 +8,31 @@ import lombok.Getter;
 /**
  * 游戏错误码枚举
  *
- * 实现 MsgExceptionInfo 接口，支持 ioGame 的断言式异常
+ * 错误码格式：XYYZZZ（5-6位数字）
+ * - X: 大类（1-9）
+ * - YY: 子类（01-99）
+ * - ZZZ: 具体错误（001-999）
  *
- * 错误码分配规则：
- * - 0: 成功
- * - 10000-19999: 房间错误
- * - 20000-29999: 玩家错误
- * - 30000-39999: 出牌错误
- * - 40000-49999: 游戏错误
- * - 50000-59999: 系统错误
+ * 大类分配：
+ * - 1: 系统错误
+ * - 2: 业务错误（用户、房间、联盟、道具等）
+ * - 3: 游戏错误
+ * - 4-9: 预留扩展
+ *
+ * 子类分配（大类=2）：
+ * - 01: 用户/认证
+ * - 02: 房间
+ * - 03: 联盟
+ * - 04: 道具
+ * - 05: 支付
+ *
+ * 子类分配（大类=3）：
+ * - 00: 游戏通用
+ * - 01: 斗地主
+ * - 02: 德州
+ * - 03: 牛牛
+ * - 04: 麻将
+ * - 05: 炸金花
  *
  * @author poker-platform
  */
@@ -25,96 +42,102 @@ public enum GameCode implements MsgExceptionInfo {
     // ========== 成功 ==========
     SUCCESS(0, "成功"),
 
-    // ========== 房间错误 (10000-19999) ==========
+    // ========== 系统错误 (1xxxx) ==========
+    SYSTEM_ERROR(100001, "系统错误"),
+    DB_ERROR(100002, "数据库错误"),
+    NETWORK_ERROR(100003, "网络错误"),
+    PARAM_ERROR(100004, "参数错误"),
+    ILLEGAL_STATE(100005, "非法状态"),
+    ILLEGAL_OPERATION(100006, "非法操作"),
+    OPERATION_TOO_FAST(100007, "操作过快，请稍后再试"),
 
-    /** 房间不存在 */
-    ROOM_NOT_FOUND(10001, "房间不存在"),
+    // ========== 用户/认证错误 (201xxx) ==========
+    USER_NOT_FOUND(201001, "用户不存在"),
+    USER_DISABLED(201002, "用户已被禁用"),
+    USERNAME_EXISTS(201003, "用户名已存在"),
+    PASSWORD_ERROR(201004, "密码错误"),
+    LOGIN_FAILED(201005, "登录失败"),
+    NOT_LOGGED_IN(201006, "未登录，请先登录"),
+    TOKEN_INVALID(201007, "Token无效"),
+    TOKEN_EXPIRED(201008, "Token已过期"),
+    TOKEN_MISSING(201009, "缺少Token"),
+    TOKEN_VERIFY_FAILED(201010, "Token验证失败"),
 
-    /** 房间已满 */
-    ROOM_FULL(10002, "房间已满"),
+    // ========== 房间错误 (202xxx) ==========
+    ROOM_NOT_FOUND(202001, "房间不存在"),
+    ROOM_FULL(202002, "房间已满"),
+    ROOM_NOT_EXIST(202003, "房间不存在或已销毁"),
+    ROOM_ALREADY_STARTED(202004, "游戏已开始，无法加入"),
+    ROOM_NOT_ENOUGH_PLAYERS(202005, "房间人数不足，无法开始游戏"),
+    ROOM_PLAYER_FULL(202006, "房间人数已满"),
+    NOT_ROOM_OWNER(202007, "只有房主可以开始游戏"),
+    PLAYER_ALREADY_IN_ROOM(202008, "玩家已在房间中"),
+    PLAYER_NOT_IN_ROOM(202009, "玩家不在房间中"),
+    PLAYER_NOT_READY(202010, "玩家未准备"),
 
-    /** 游戏已开始 */
-    ROOM_ALREADY_STARTED(10003, "游戏已开始，无法加入"),
+    // ========== 联盟错误 (203xxx) ==========
+    ALLIANCE_NOT_FOUND(203001, "联盟不存在"),
+    ALLIANCE_ALREADY_JOINED(203002, "已加入联盟"),
+    ALLIANCE_NOT_MEMBER(203003, "不是联盟成员"),
+    ALLIANCE_FULL(203004, "联盟已满"),
+    ALLIANCE_NO_PERMISSION(203005, "无权限操作"),
 
-    /** 房间人数不足 */
-    ROOM_NOT_ENOUGH_PLAYERS(10004, "房间人数不足，无法开始游戏"),
+    // ========== 道具错误 (204xxx) ==========
+    ITEM_NOT_FOUND(204001, "道具不存在"),
+    ITEM_NOT_ENOUGH(204002, "道具不足"),
+    ITEM_CANNOT_USE(204003, "道具无法使用"),
 
-    /** 房间人数已满 */
-    ROOM_PLAYER_FULL(10005, "房间人数已满"),
+    // ========== 支付错误 (205xxx) ==========
+    PAY_ORDER_NOT_FOUND(205001, "订单不存在"),
+    PAY_AMOUNT_ERROR(205002, "金额错误"),
+    PAY_ALREADY_PROCESSED(205003, "订单已处理"),
 
-    /** 房间不存在或已销毁 */
-    ROOM_NOT_EXIST(10006, "房间不存在或已销毁"),
+    // ========== 游戏通用错误 (300xxx) ==========
+    GAME_NOT_STARTED(300001, "游戏未开始"),
+    GAME_ALREADY_FINISHED(300002, "游戏已结束"),
+    INVALID_GAME_STATE(300003, "游戏状态错误"),
+    GAME_NOT_FOUND(300004, "游戏不存在"),
+    NOT_YOUR_TURN(300005, "不是你的回合"),
+    INVALID_PATTERN(300006, "无效的牌型"),
+    CANNOT_BEAT(300007, "不能压过上家的牌"),
+    CARDS_NOT_IN_HAND(300008, "手牌中没有这些牌"),
+    NO_CARDS_TO_PLAY(300009, "没有能出的牌"),
+    INVALID_CARD_COUNT(300010, "出牌数量不正确"),
+    FIRST_PLAY_NO_BOMB(300011, "首出不能出炸弹"),
+    INVALID_PREVIOUS_PATTERN(300012, "上家牌型无效"),
+    DEAL_CARDS_FAILED(300013, "发牌失败"),
+    OPERATION_TIMEOUT(300014, "操作超时"),
 
-    // ========== 玩家错误 (20000-29999) ==========
+    // ========== 斗地主错误 (301xxx) ==========
+    DOUDIZHU_BIDDING_NOT_INITIALIZED(301001, "叫地主流程未初始化"),
+    DOUDIZHU_BIDDING_STATE_ERROR(301002, "叫地主状态错误"),
+    DOUDIZHU_NOT_BIDDING_TURN(301003, "不是你的叫地主回合"),
+    DOUDIZHU_BIDDING_ALREADY_COMPLETED(301004, "叫地主已结束"),
+    DOUDIZHU_INVALID_PLANE(301005, "无效的飞机牌型"),
+    DOUDIZHU_INVALID_STRAIGHT_PAIR(301006, "无效的连对牌型"),
+    DOUDIZHU_INVALID_FOUR_WITH_WINGS(301007, "无效的四带二牌型"),
 
-    /** 玩家不在房间中 */
-    PLAYER_NOT_IN_ROOM(20001, "玩家不在房间中"),
+    // ========== 德州错误 (302xxx) ==========
+    TEXAS_INVALID_BET(302001, "无效的下注"),
+    TEXAS_INSUFFICIENT_CHIPS(302002, "筹码不足"),
+    TEXAS_ALREADY_FOLDED(302003, "已弃牌"),
+    TEXAS_NOT_YOUR_TURN(302004, "不是你的回合"),
+    TEXAS_RAISE_TOO_LOW(302005, "加注金额过低"),
 
-    /** 不是你的回合 */
-    NOT_YOUR_TURN(20002, "不是你的回合"),
+    // ========== 牛牛错误 (303xxx) ==========
+    NIUNIU_INVALID_BET(303001, "无效的下注"),
+    NIUNIU_NO_BULL(303002, "无牛"),
 
-    /** 玩家未准备 */
-    PLAYER_NOT_READY(20003, "玩家未准备"),
+    // ========== 麻将错误 (304xxx) ==========
+    MAHJONG_INVALID_DISCARD(304001, "无效的出牌"),
+    MAHJONG_CANNOT_CHI(304002, "不能吃"),
+    MAHJONG_CANNOT_PENG(304003, "不能碰"),
+    MAHJONG_CANNOT_GANG(304004, "不能杠"),
+    MAHJONG_CANNOT_HU(304005, "不能胡"),
 
-    /** 不是房主 */
-    NOT_ROOM_OWNER(20004, "只有房主可以开始游戏"),
-
-    /** 非法操作 */
-    ILLEGAL_OPERATION(20005, "当前状态下不能执行此操作"),
-
-    /** 玩家已在房间中 */
-    PLAYER_ALREADY_IN_ROOM(20006, "玩家已在房间中"),
-
-    // ========== 出牌错误 (30000-39999) ==========
-
-    /** 无效的牌型 */
-    INVALID_PATTERN(30001, "无效的牌型"),
-
-    /** 不能压过上家的牌 */
-    CANNOT_BEAT(30002, "不能压过上家的牌"),
-
-    /** 手牌中没有这些牌 */
-    CARDS_NOT_IN_HAND(30003, "手牌中没有这些牌"),
-
-    /** 没有能出的牌 */
-    NO_CARDS_TO_PLAY(30004, "没有能出的牌"),
-
-    /** 出牌数量不正确 */
-    INVALID_CARD_COUNT(30005, "出牌数量不正确"),
-
-    /** 首出不能出炸弹 */
-    FIRST_PLAY_NO_BOMB(30006, "首出不能出炸弹"),
-
-    /** 上家牌型无效 */
-    INVALID_PREVIOUS_PATTERN(30007, "上家牌型无效"),
-
-    // ========== 游戏错误 (40000-49999) ==========
-
-    /** 游戏未开始 */
-    GAME_NOT_STARTED(40001, "游戏未开始"),
-
-    /** 游戏已结束 */
-    GAME_ALREADY_FINISHED(40002, "游戏已结束"),
-
-    /** 游戏状态错误 */
-    INVALID_GAME_STATE(40003, "游戏状态错误"),
-
-    /** 发牌失败 */
-    DEAL_CARDS_FAILED(40004, "发牌失败"),
-
-    /** 叫地主流程未初始化 */
-    BIDDING_NOT_INITIALIZED(41001, "叫地主流程未初始化"),
-
-    /** 叫地主状态错误 */
-    BIDDING_STATE_ERROR(41002, "叫地主状态错误"),
-
-    /** 不是叫地主回合 */
-    NOT_BIDDING_TURN(41003, "不是你的叫地主回合"),
-
-    // ========== 系统错误 (50000-59999) ==========
-
-    /** 系统错误 */
-    SYSTEM_ERROR(50001, "系统错误，请稍后重试");
+    // ========== 炸金花错误 (305xxx) ==========
+    ZHAJINHUA_INVALID_COMPARE(305001, "无效的比牌"),
+    ZHAJINHUA_INSUFFICIENT_CHIPS(305002, "筹码不足");
 
     private final int code;
     private final String message;
@@ -129,5 +152,16 @@ public enum GameCode implements MsgExceptionInfo {
         return this.code;
     }
 
+    public void assertTrueThrows(boolean condition) {
+        if (condition) {
+            throw new MsgException(this);
+        }
+    }
+
+    public void assertTrueThrows(boolean condition, String customMessage) {
+        if (condition) {
+            throw new MsgException(this.getCode(), customMessage);
+        }
+    }
 }
 

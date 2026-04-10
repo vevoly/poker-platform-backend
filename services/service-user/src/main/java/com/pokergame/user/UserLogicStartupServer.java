@@ -1,7 +1,9 @@
 package com.pokergame.user;
 
 import com.iohao.game.bolt.broker.client.BrokerClientApplication;
+import com.pokergame.starter.redis.annotation.EnableRedis;
 
+@EnableRedis
 public class UserLogicStartupServer {
 
     public static void main(String[] args) {
