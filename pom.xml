@@ -59,6 +59,11 @@
                 <artifactId>game-starter-redis</artifactId>
                 <version>${revision}</version>
             </dependency>
+            <dependency>
+                <groupId>com.pokergame</groupId>
+                <artifactId>game-starter-mybatis</artifactId>
+                <version>${revision}</version>
+            </dependency>
 
             <dependency>
                 <groupId>com.iohao.game</groupId>

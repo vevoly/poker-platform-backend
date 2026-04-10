@@ -24,6 +24,10 @@
             <groupId>com.pokergame</groupId>
             <artifactId>game-starter-redis</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.pokergame</groupId>
+            <artifactId>game-starter-mybatis</artifactId>
+        </dependency>
 
         <!-- ioGame核心依赖 -->
         <dependency>

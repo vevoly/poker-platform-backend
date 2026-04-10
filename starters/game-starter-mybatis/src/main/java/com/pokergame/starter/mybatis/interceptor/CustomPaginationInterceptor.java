@@ -38,15 +38,13 @@ public class CustomPaginationInterceptor implements InnerInterceptor {
     }
 
     /**
-     * 查询后处理
+     * 判断是否执行查询（可控制是否拦截）
      */
     @Override
-    public void afterQuery(Executor executor, MappedStatement ms, Object parameter,
-                           RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql,
-                           Object result) throws SQLException {
-        if (result instanceof IPage) {
-            log.debug("分页查询完成: {}", ms.getId());
-            // 可以在这里处理查询结果，如脱敏等
-        }
+    public boolean willDoQuery(Executor executor, MappedStatement ms, Object parameter,
+                               RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql)
+            throws SQLException {
+        // 返回 true 表示执行查询，false 表示不执行
+        return true;
     }
 }
