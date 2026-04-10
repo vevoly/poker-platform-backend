@@ -62,6 +62,11 @@ public enum GameCode implements MsgExceptionInfo {
     TOKEN_EXPIRED(201008, "Token已过期"),
     TOKEN_MISSING(201009, "缺少Token"),
     TOKEN_VERIFY_FAILED(201010, "Token验证失败"),
+    USER_REGISTER_FAILED(201011, "注册失败，请稍后重试"),
+    USER_UPDATE_FAILED(201012, "更新用户信息失败"),
+    USERNAME_INVALID(201013, "用户名格式不正确（4-20位字母数字）"),
+    PASSWORD_INVALID(201014, "密码格式不正确（6-20位）"),
+    NICKNAME_INVALID(201015, "昵称格式不正确（1-20位）"),
 
     // ========== 房间错误 (202xxx) ==========
     ROOM_NOT_FOUND(202001, "房间不存在"),
@@ -91,6 +96,17 @@ public enum GameCode implements MsgExceptionInfo {
     PAY_ORDER_NOT_FOUND(205001, "订单不存在"),
     PAY_AMOUNT_ERROR(205002, "金额错误"),
     PAY_ALREADY_PROCESSED(205003, "订单已处理"),
+
+    // ========== 货币错误 (206xxx) ==========
+    CURRENCY_NOT_FOUND(206001, "货币类型不存在"),
+    CURRENCY_NOT_ENOUGH(206002, "货币不足"),
+    CURRENCY_INCREASE_FAILED(206003, "增加货币失败"),
+    CURRENCY_DECREASE_FAILED(206004, "减少货币失败"),
+    CURRENCY_OPERATION_CONFLICT(206005, "货币操作冲突，请重试"),
+
+    // ========== 统计错误 (207xxx) ==========
+    USER_STATS_NOT_FOUND(207001, "用户统计信息不存在"),
+    USER_STATS_UPDATE_FAILED(207002, "更新统计信息失败"),
 
     // ========== 游戏通用错误 (300xxx) ==========
     GAME_NOT_STARTED(300001, "游戏未开始"),

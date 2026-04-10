@@ -1,0 +1,66 @@
+spring:
+  application:
+    name: service-user-test
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/poker_game?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+
+    druid:
+      initial-size: 1
+      min-idle: 1
+      max-active: 5
+      max-wait: 60000
+      time-between-eviction-runs-millis: 60000
+      min-evictable-idle-time-millis: 300000
+      validation-query: SELECT 1
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+
+  # 添加 Redis 配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 5000ms
+
+# 自定义 Redis 配置
+redis:
+  prefix: poker
+  env: test
+  token-expire-hours: 24
+  single-login: true
+  redisson:
+    address: redis://localhost:6379
+    # password 不写或写 ~ 表示无密码
+    connection-pool-size: 64
+    connection-minimum-idle-size: 10
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*.xml
+  type-aliases-package: com.pokergame.user.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: assign_id
+      logic-delete-field: delFlag
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# JWT 配置
+jwt:
+  secret: test-secret-key-for-testing-only
+  expire-hours: 24
+
+# 日志配置
+logging:
+  level:
+    com.pokergame: DEBUG
+    com.baomidou.mybatisplus: DEBUG

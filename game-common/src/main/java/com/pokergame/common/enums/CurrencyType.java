@@ -12,22 +12,35 @@ import lombok.Getter;
 @Getter
 public enum CurrencyType {
 
-    /** 金币 */
+    /**
+     * 金币（基础货币）
+     */
     GOLD("GOLD", "金币"),
 
-    // ========== 未来扩展（暂不实现） ==========
-    // DIAMOND("DIAMOND", "钻石"),
-    // ALLIANCE_COIN("ALLIANCE_COIN", "联盟币"),
-    // CREDIT("CREDIT", "信用额度"),
+    /**
+     * 钻石（付费货币）
+     */
+    DIAMOND("DIAMOND", "钻石"),
 
-    ;
+    /**
+     * 联盟币（公会货币）
+     */
+    ALLIANCE_COIN("ALLIANCE_COIN", "联盟币");
 
     private final String code;
-    private final String name;
+    private final String desc;
 
-    CurrencyType(String code, String name) {
+    CurrencyType(String code, String desc) {
         this.code = code;
-        this.name = name;
+        this.desc = desc;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public String getDesc() {
+        return desc;
     }
 
     public static CurrencyType fromCode(String code) {

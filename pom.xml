@@ -19,13 +19,13 @@
         <encoding>UTF-8</encoding>
         <revision>1.0.0</revision>
         <ioGame.version>21.30</ioGame.version>
-        <springboot.version>3.1.2</springboot.version>
         <lombok.version>1.18.34</lombok.version>
-        <logback.version>1.4.14</logback.version>
+        <logback.version>1.5.6</logback.version>
         <junit.version>4.13.2</junit.version>
-        <spring-boot.version>3.2.0</spring-boot.version>
+        <spring-boot.version>3.2.12</spring-boot.version>
+        <spring-retry.version>2.0.4</spring-retry.version>
         <hutool.version>5.8.22</hutool.version>
-
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
         <jwt.version>4.4.0</jwt.version>
         <jackson.version>2.15.3</jackson.version>
     </properties>
@@ -121,16 +121,49 @@
                 <optional>true</optional>
                 <version>${spring-boot.version}</version>
             </dependency>
+            <!-- Spring Retry - 支持重试机制 -->
+            <dependency>
+                <groupId>org.springframework.retry</groupId>
+                <artifactId>spring-retry</artifactId>
+                <version>${spring-retry.version}</version>
+            </dependency>
+            <!-- Spring AOP - Retry 依赖 AOP 功能 -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-aop</artifactId>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <!-- Spring Boot Test -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-test</artifactId>
+                <version>${spring-boot.version}</version>
+                <scope>test</scope>
+            </dependency>
 
+
+            <!-- Hutool 工具类 -->
             <dependency>
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-all</artifactId>
                 <version>${hutool.version}</version>
             </dependency>
+            <!-- Jackson -->
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
                 <version>${jackson.version}</version>
+            </dependency>
+            <!-- MapStruct -->
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.projectlombok</groupId>
@@ -163,7 +196,7 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                     <parameters>true</parameters>
-                    <skip>true</skip>
+<!--                    <skip>true</skip>-->
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>

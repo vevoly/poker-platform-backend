@@ -21,4 +21,10 @@ public class GetUserInfoReq {
 
     /** 用户ID（可选，不传则查当前登录用户） */
     private Long userId;
+
+    /** 是否包含货币信息 */
+    private Boolean includeCurrency;
+
+    /** 是否包含统计信息 */
+    private Boolean includeStats;
 }

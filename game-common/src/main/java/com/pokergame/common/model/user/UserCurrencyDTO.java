@@ -5,10 +5,8 @@ import lombok.Data;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
-import java.util.List;
-
 /**
- * 查询货币请求
+ * 货币信息
  *
  * @author poker-platform
  */
@@ -16,11 +14,14 @@ import java.util.List;
 @ToString
 @ProtobufClass
 @Accessors(chain = true)
-public class GetCurrencyReq {
+public class UserCurrencyDTO {
 
     /** 用户ID */
     private Long userId;
 
-    /** 货币列表 */
-    private List<UserCurrencyDTO> currencies;
+    /** 货币类型（GOLD, DIAMOND, ALLIANCE_COIN） */
+    private String currencyType;
+
+    /** 货币数量 */
+    private Long amount;
 }

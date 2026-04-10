@@ -57,21 +57,21 @@ redis:
   single-login: true
   redisson:
     address: redis://localhost:6379
-    password:
+#    password:
     connection-pool-size: 64
     connection-minimum-idle-size: 10
 
 # MyBatis-Plus 配置
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
-  type-aliases-package: com.pokergame.user.model
+  type-aliases-package: com.pokergame.user.entity
   configuration:
     map-underscore-to-camel-case: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
-      id-type: auto
-      logic-delete-field: deleted
+      id-type: assign_id
+      logic-delete-field: delFlag
       logic-delete-value: 1
       logic-not-delete-value: 0
 

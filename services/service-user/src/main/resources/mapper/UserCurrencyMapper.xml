@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pokergame.user.mapper.UserCurrencyMapper">
+
+    <!-- 通用结果映射 -->
+    <resultMap id="BaseResultMap" type="com.pokergame.user.entity.UserCurrencyEntity">
+        <id column="user_id" property="userId"/>
+        <id column="currency_type" property="currencyType"/>
+        <result column="amount" property="amount"/>
+        <result column="version" property="version"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 批量查询用户货币 -->
+    <select id="selectBatchByUserIds" resultMap="BaseResultMap">
+        SELECT *
+        FROM user_currency
+        WHERE user_id IN
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </select>
+
+    <!-- 批量插入用户货币 -->
+    <insert id="batchInsert" parameterType="list">
+        INSERT INTO user_currency (user_id, currency_type, amount, version, create_time, update_time)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.userId}, #{item.currencyType}, #{item.amount}, 0, NOW(), NOW())
+        </foreach>
+    </insert>
+
+</mapper>

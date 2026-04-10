@@ -19,18 +19,15 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PUBLIC)
 public class LoginResp {
 
-    /** 用户ID */
-    private long userId;
+    /** 用户基本信息 */
+    private UserDTO user;
 
-    /** 用户名 */
-    private String username;
-
-    /** 昵称 */
-    private String nickname;
-
-    /** 头像 */
-    private String avatar;
-
-    /** 认证Token */
+    /** 登录Token（JWT） */
     private String token;
+
+    /** Token过期时间（时间戳，毫秒） */
+    private Long tokenExpireTime;
+
+    /** 最后登录时间（时间戳，毫秒） */
+    private Long lastLoginTime;
 }

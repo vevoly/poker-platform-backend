@@ -1,2 +1,3 @@
 com.pokergame.starter.mybatis.config.DruidConfig
 com.pokergame.starter.mybatis.config.MybatisPlusConfig
+com.pokergame.starter.mybatis.handler.CustomMetaObjectHandler

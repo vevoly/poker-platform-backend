@@ -14,7 +14,7 @@ import lombok.experimental.Accessors;
 @ToString
 @ProtobufClass
 @Accessors(chain = true)
-public class User {
+public class UserDTO {
 
     /** 用户ID */
     private long userId;

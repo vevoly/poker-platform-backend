@@ -19,15 +19,9 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PUBLIC)
 public class RegisterResp {
 
-    /** 用户ID */
-    private long userId;
+    /** 用户基本信息 */
+    private UserDTO user;
 
-    /** 用户名 */
-    private String username;
-
-    /** 昵称 */
-    private String nickname;
-
-    /** 注册时间 */
-    private long registerTime;
+    /** 初始货币列表 */
+    private java.util.List<UserCurrencyDTO> initialCurrencies;
 }
