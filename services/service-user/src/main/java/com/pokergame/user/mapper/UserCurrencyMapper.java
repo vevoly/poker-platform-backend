@@ -40,6 +40,13 @@ public interface UserCurrencyMapper extends BaseMapper<UserCurrencyEntity> {
                                              @Param("currencyType") String currencyType);
 
     /**
+     * 查询用户货币（带行锁）
+     */
+    @Select("SELECT * FROM user_currency WHERE user_id = #{userId} AND currency_type = #{currencyType} FOR UPDATE")
+    UserCurrencyEntity selectByUserIdAndTypeForUpdate(@Param("userId") Long userId,
+                                                      @Param("currencyType") String currencyType);
+
+    /**
      * 增加货币数量（乐观锁）
      *
      * <p>使用乐观锁保证并发安全，通过 version 字段防止并发覆盖

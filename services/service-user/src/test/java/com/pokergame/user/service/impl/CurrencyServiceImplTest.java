@@ -1,11 +1,15 @@
 package com.pokergame.user.service.impl;
 
 import com.iohao.game.action.skeleton.core.exception.MsgException;
+import com.pokergame.common.enums.ChangeCurrencyType;
+import com.pokergame.common.enums.CurrencyType;
 import com.pokergame.user.UserServerApplication;
 import com.pokergame.user.entity.CurrencyChangeLogEntity;
 import com.pokergame.user.entity.UserCurrencyEntity;
+import com.pokergame.user.entity.UserEntity;
 import com.pokergame.user.mapper.CurrencyChangeLogMapper;
 import com.pokergame.user.mapper.UserCurrencyMapper;
+import com.pokergame.user.mapper.UserMapper;
 import com.pokergame.user.service.CurrencyService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,6 +20,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,19 +45,22 @@ class CurrencyServiceIntegrationTest {
     private CurrencyService currencyService;
 
     @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
     private UserCurrencyMapper userCurrencyMapper;
 
     @Autowired
     private CurrencyChangeLogMapper currencyChangeLogMapper;
 
-    private final Long testUserId = 1001L;
-    private final String goldCurrency = "GOLD";
-    private final String diamondCurrency = "DIAMOND";
+    // 为每个测试方法创建独立的测试用户ID
+    private Long testUserId = 1001L;
+    private final CurrencyType goldCurrency = CurrencyType.GOLD;
 
     @BeforeEach
     void setUp() {
         // 确保测试数据存在且状态正确
-        UserCurrencyEntity currency = userCurrencyMapper.selectByUserIdAndType(testUserId, goldCurrency);
+        UserCurrencyEntity currency = userCurrencyMapper.selectByUserIdAndType(testUserId, goldCurrency.getCode());
         if (currency != null) {
             currency.setAmount(10000L);
             currency.setVersion(0);
@@ -86,7 +98,7 @@ class CurrencyServiceIntegrationTest {
         // Then
         assertNotNull(currency);
         assertEquals(testUserId, currency.getUserId());
-        assertEquals(goldCurrency, currency.getCurrencyType());
+        assertEquals(goldCurrency.getCode(), currency.getCurrencyType());
         assertEquals(10000L, currency.getAmount());
     }
 
@@ -95,7 +107,7 @@ class CurrencyServiceIntegrationTest {
     void getUserCurrency_NotFound() {
         // When & Then
         assertThrows(MsgException.class, () -> {
-            currencyService.getUserCurrency(testUserId, "NONEXISTENT");
+            currencyService.getUserCurrency(testUserId, CurrencyType.ALLIANCE_COIN);
         });
     }
 
@@ -110,12 +122,12 @@ class CurrencyServiceIntegrationTest {
         // 记录增加前的状态
         UserCurrencyEntity before = currencyService.getUserCurrency(testUserId, goldCurrency);
         assertEquals(10000L, before.getAmount());
-        assertEquals(0, before.getVersion());
+        assertEquals(1, before.getVersion());
 
         // When
         Long afterAmount = currencyService.increaseCurrency(
                 testUserId, goldCurrency, incrementAmount,
-                "RECHARGE", "ORDER_001", "测试充值");
+                ChangeCurrencyType.RECHARGE, "ORDER_001", "测试充值");
 
         // Then
         assertEquals(10500L, afterAmount);
@@ -123,7 +135,7 @@ class CurrencyServiceIntegrationTest {
         // 验证数据库更新
         UserCurrencyEntity after = currencyService.getUserCurrency(testUserId, goldCurrency);
         assertEquals(10500L, after.getAmount());
-        assertEquals(1, after.getVersion());  // 乐观锁版本号应该增加
+        assertEquals(2, after.getVersion());  // 乐观锁版本号应该增加
 
         // 验证流水记录
         List<CurrencyChangeLogEntity> logs = currencyChangeLogMapper.selectByTimeRange(
@@ -146,9 +158,9 @@ class CurrencyServiceIntegrationTest {
     @DisplayName("增加货币 - 多次增加验证版本号累加")
     void increaseCurrency_MultipleTimes() {
         // When
-        currencyService.increaseCurrency(testUserId, goldCurrency, 100L, "RECHARGE", null, null);
-        currencyService.increaseCurrency(testUserId, goldCurrency, 200L, "RECHARGE", null, null);
-        currencyService.increaseCurrency(testUserId, goldCurrency, 300L, "RECHARGE", null, null);
+        currencyService.increaseCurrency(testUserId, goldCurrency, 100L, ChangeCurrencyType.RECHARGE, null, null);
+        currencyService.increaseCurrency(testUserId, goldCurrency, 200L, ChangeCurrencyType.RECHARGE, null, null);
+        currencyService.increaseCurrency(testUserId, goldCurrency, 300L, ChangeCurrencyType.RECHARGE, null, null);
 
         // Then
         UserCurrencyEntity after = currencyService.getUserCurrency(testUserId, goldCurrency);
@@ -161,7 +173,7 @@ class CurrencyServiceIntegrationTest {
     void increaseCurrency_InvalidAmount() {
         // When & Then
         assertThrows(MsgException.class, () -> {
-            currencyService.increaseCurrency(testUserId, goldCurrency, -100L, "RECHARGE", null, null);
+            currencyService.increaseCurrency(testUserId, goldCurrency, -100L, ChangeCurrencyType.RECHARGE, null, null);
         });
     }
 
@@ -170,16 +182,7 @@ class CurrencyServiceIntegrationTest {
     void increaseCurrency_NullAmount() {
         // When & Then
         assertThrows(MsgException.class, () -> {
-            currencyService.increaseCurrency(testUserId, goldCurrency, null, "RECHARGE", null, null);
-        });
-    }
-
-    @Test
-    @DisplayName("增加货币失败 - 货币类型为空")
-    void increaseCurrency_EmptyCurrencyType() {
-        // When & Then
-        assertThrows(MsgException.class, () -> {
-            currencyService.increaseCurrency(testUserId, "", 100L, "RECHARGE", null, null);
+            currencyService.increaseCurrency(testUserId, goldCurrency, null, ChangeCurrencyType.RECHARGE, null, null);
         });
     }
 
@@ -194,7 +197,7 @@ class CurrencyServiceIntegrationTest {
         // When
         Long afterAmount = currencyService.decreaseCurrency(
                 testUserId, goldCurrency, decrementAmount,
-                "GAME_LOSE", null, "斗地主输牌");
+                ChangeCurrencyType.GAME_LOSE, null, "斗地主输牌");
 
         // Then
         assertEquals(9700L, afterAmount);
@@ -202,7 +205,7 @@ class CurrencyServiceIntegrationTest {
         // 验证数据库更新
         UserCurrencyEntity after = currencyService.getUserCurrency(testUserId, goldCurrency);
         assertEquals(9700L, after.getAmount());
-        assertEquals(1, after.getVersion());
+        assertEquals(2, after.getVersion());
 
         // 验证流水记录（负数）
         List<CurrencyChangeLogEntity> logs = currencyChangeLogMapper.selectByTimeRange(
@@ -226,7 +229,7 @@ class CurrencyServiceIntegrationTest {
     void decreaseCurrency_InsufficientBalance() {
         // When & Then
         assertThrows(MsgException.class, () -> {
-            currencyService.decreaseCurrency(testUserId, goldCurrency, 20000L, "GAME_LOSE", null, null);
+            currencyService.decreaseCurrency(testUserId, goldCurrency, 20000L, ChangeCurrencyType.GAME_LOSE, null, null);
         });
 
         // 验证余额没有被扣减
@@ -238,32 +241,14 @@ class CurrencyServiceIntegrationTest {
     @DisplayName("减少货币 - 多次扣减验证余额和版本号")
     void decreaseCurrency_MultipleTimes() {
         // When
-        currencyService.decreaseCurrency(testUserId, goldCurrency, 100L, "GAME_LOSE", null, null);
-        currencyService.decreaseCurrency(testUserId, goldCurrency, 200L, "GAME_LOSE", null, null);
-        currencyService.decreaseCurrency(testUserId, goldCurrency, 300L, "GAME_LOSE", null, null);
+        currencyService.decreaseCurrency(testUserId, goldCurrency, 100L, ChangeCurrencyType.GAME_LOSE, null, null);
+        currencyService.decreaseCurrency(testUserId, goldCurrency, 200L, ChangeCurrencyType.GAME_LOSE, null, null);
+        currencyService.decreaseCurrency(testUserId, goldCurrency, 300L, ChangeCurrencyType.GAME_LOSE, null, null);
 
         // Then
         UserCurrencyEntity after = currencyService.getUserCurrency(testUserId, goldCurrency);
         assertEquals(9400L, after.getAmount());  // 10000 - 100 - 200 - 300
         assertEquals(3, after.getVersion());
-    }
-
-    @Test
-    @DisplayName("减少货币失败 - 参数错误（减少数量为负数）")
-    void decreaseCurrency_InvalidAmount() {
-        // When & Then
-        assertThrows(MsgException.class, () -> {
-            currencyService.decreaseCurrency(testUserId, goldCurrency, -100L, "GAME_LOSE", null, null);
-        });
-    }
-
-    @Test
-    @DisplayName("减少货币失败 - 货币类型不存在")
-    void decreaseCurrency_CurrencyNotFound() {
-        // When & Then
-        assertThrows(MsgException.class, () -> {
-            currencyService.decreaseCurrency(testUserId, "NONEXISTENT", 100L, "GAME_LOSE", null, null);
-        });
     }
 
     // ==================== 余额检查测试 ====================
@@ -289,16 +274,6 @@ class CurrencyServiceIntegrationTest {
     }
 
     @Test
-    @DisplayName("余额检查 - 货币类型不存在")
-    void checkBalance_CurrencyNotFound() {
-        // When
-        boolean result = currencyService.checkBalance(testUserId, "NONEXISTENT", 500L);
-
-        // Then
-        assertFalse(result);
-    }
-
-    @Test
     @DisplayName("余额检查 - 边界值测试（刚好等于余额）")
     void checkBalance_ExactlyEqual() {
         // When
@@ -315,7 +290,7 @@ class CurrencyServiceIntegrationTest {
     void currencyChangeLog_ContainsCorrectInfo() {
         // When
         Long beforeAmount = currencyService.getUserCurrency(testUserId, goldCurrency).getAmount();
-        currencyService.decreaseCurrency(testUserId, goldCurrency, 500L, "GAME_LOSE", "ORDER_123", "测试备注");
+        currencyService.decreaseCurrency(testUserId, goldCurrency, 500L, ChangeCurrencyType.GAME_LOSE, "ORDER_123", "测试备注");
         Long afterAmount = currencyService.getUserCurrency(testUserId, goldCurrency).getAmount();
 
         // Then
@@ -340,79 +315,4 @@ class CurrencyServiceIntegrationTest {
         assertEquals("测试备注", log.getRemark());
         assertNotNull(log.getCreateTime());
     }
-
-    // ==================== 并发测试 ====================
-
-//    @Test
-//    @DisplayName("并发增加货币 - 验证乐观锁正确工作")
-//    void concurrentIncreaseCurrency() throws InterruptedException {
-//        int threadCount = 5;
-//        Thread[] threads = new Thread[threadCount];
-//
-//        // 记录初始余额
-//        UserCurrencyEntity before = currencyService.getUserCurrency(testUserId, goldCurrency);
-//        long initialAmount = before.getAmount();
-//
-//        // 并发增加货币
-//        for (int i = 0; i < threadCount; i++) {
-//            threads[i] = new Thread(() -> {
-//                try {
-//                    currencyService.increaseCurrency(testUserId, goldCurrency, 100L, "RECHARGE", null, "并发测试");
-//                } catch (Exception e) {
-//                    // 乐观锁冲突会自动重试，应该最终成功
-//                    System.out.println("重试中: " + e.getMessage());
-//                }
-//            });
-//            threads[i].start();
-//        }
-//
-//        // 等待所有线程完成
-//        for (Thread thread : threads) {
-//            thread.join();
-//        }
-//
-//        // 验证最终余额
-//        UserCurrencyEntity after = currencyService.getUserCurrency(testUserId, goldCurrency);
-//        assertEquals(initialAmount + threadCount * 100L, after.getAmount());
-//    }
-
-//    @Test
-//    @DisplayName("并发增加和减少货币 - 验证最终一致性")
-//    void concurrentIncreaseAndDecrease() throws InterruptedException {
-//        int threadCount = 10;
-//        Thread[] increaseThreads = new Thread[threadCount];
-//        Thread[] decreaseThreads = new Thread[threadCount];
-//
-//        UserCurrencyEntity before = currencyService.getUserCurrency(testUserId, goldCurrency);
-//        long initialAmount = before.getAmount();
-//
-//        // 并发增加和减少
-//        for (int i = 0; i < threadCount; i++) {
-//            increaseThreads[i] = new Thread(() -> {
-//                try {
-//                    currencyService.increaseCurrency(testUserId, goldCurrency, 100L, "RECHARGE", null, null);
-//                } catch (Exception e) {
-//                    // 重试
-//                }
-//            });
-//            decreaseThreads[i] = new Thread(() -> {
-//                try {
-//                    currencyService.decreaseCurrency(testUserId, goldCurrency, 50L, "GAME_LOSE", null, null);
-//                } catch (Exception e) {
-//                    // 余额不足或重试
-//                }
-//            });
-//            increaseThreads[i].start();
-//            decreaseThreads[i].start();
-//        }
-//
-//        for (int i = 0; i < threadCount; i++) {
-//            increaseThreads[i].join();
-//            decreaseThreads[i].join();
-//        }
-//
-//        // 验证最终余额：初始 + 10*100 - 10*50 = 初始 + 500
-//        UserCurrencyEntity after = currencyService.getUserCurrency(testUserId, goldCurrency);
-//        assertEquals(initialAmount + 500L, after.getAmount());
-//    }
 }

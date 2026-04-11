@@ -7,8 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RBucket;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
-import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -19,7 +19,6 @@ import java.util.concurrent.TimeUnit;
  * @author poker-platform
  */
 @Slf4j
-@Component
 @RequiredArgsConstructor
 public class RedisKeyUtil {
 
@@ -70,6 +69,20 @@ public class RedisKeyUtil {
     }
 
     /**
+     * 设置值（不覆盖现有值，如果 key 已存在则返回 false）
+     */
+    public <T> boolean setIfAbsent(RedisKey keyEnum, T value, Object... args) {
+        String key = getFullKey(keyEnum, args);
+        RBucket<T> bucket = redissonClient.getBucket(key);
+        boolean success = bucket.trySet(value);
+        if (success && keyEnum.getExpireSeconds() > 0) {
+            bucket.expire(keyEnum.getExpireSeconds(), TimeUnit.SECONDS);
+        }
+        log.debug("Redis SETNX: key={}, value={}, success={}", key, value, success);
+        return success;
+    }
+
+    /**
      * 获取值
      */
     public <T> T get(RedisKey keyEnum, Object... args) {
@@ -81,12 +94,43 @@ public class RedisKeyUtil {
     }
 
     /**
+     * 设置值并返回旧值
+     */
+    public <T> T getAndSet(RedisKey keyEnum, T value, Object... args) {
+        String key = getFullKey(keyEnum, args);
+        RBucket<T> bucket = redissonClient.getBucket(key);
+        T oldValue = bucket.getAndSet(value);
+        if (keyEnum.getExpireSeconds() > 0) {
+            bucket.expire(keyEnum.getExpireSeconds(), TimeUnit.SECONDS);
+        }
+        log.debug("Redis GETANDSET: key={}, oldValue={}, newValue={}", key, oldValue, value);
+        return oldValue;
+    }
+
+    /**
+     * 获取 Bucket（不自动设置过期时间）
+     */
+    public <T> RBucket<T> getBucketRaw(RedisKey keyEnum, Object... args) {
+        String key = getFullKey(keyEnum, args);
+        return redissonClient.getBucket(key);
+    }
+
+    /**
      * 删除
      */
     public void delete(RedisKey keyEnum, Object... args) {
         String key = getFullKey(keyEnum, args);
         redissonClient.getBucket(key).delete();
         log.debug("Redis DEL: key={}", key);
+    }
+
+    /**
+     * 删除多个 Key
+     */
+    public void deleteBatch(RedisKey keyEnum, List<Object> argsList) {
+        for (Object args : argsList) {
+            delete(keyEnum, args);
+        }
     }
 
     /**
@@ -159,5 +203,6 @@ public class RedisKeyUtil {
         redissonClient.getBucket(key).expire(expireSeconds, TimeUnit.SECONDS);
         log.debug("Redis EXPIRE: key={}, expire={}s", key, expireSeconds);
     }
+
 
 }

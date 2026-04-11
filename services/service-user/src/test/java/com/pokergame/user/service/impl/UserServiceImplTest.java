@@ -1,7 +1,8 @@
 package com.pokergame.user.service.impl;
 
 import com.iohao.game.action.skeleton.core.exception.MsgException;
-import com.pokergame.user.UserLogicStartup;
+import com.pokergame.common.enums.ChangeCurrencyType;
+import com.pokergame.common.enums.CurrencyType;
 import com.pokergame.user.UserServerApplication;
 import com.pokergame.user.entity.UserCurrencyEntity;
 import com.pokergame.user.entity.UserEntity;
@@ -13,7 +14,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,7 +58,7 @@ class UserServiceImplTest {
         assertEquals(0, user.getDelFlag());    // 逻辑删除默认值
 
         // 验证货币是否初始化
-        UserCurrencyEntity currency = currencyService.getUserCurrency(userId, "GOLD");
+        UserCurrencyEntity currency = currencyService.getUserCurrency(userId, CurrencyType.GOLD);
         assertNotNull(currency);
         assertEquals(10000L, currency.getAmount());
 
@@ -129,19 +129,19 @@ class UserServiceImplTest {
     @DisplayName("增加货币 - 验证乐观锁版本号增加")
     void increaseCurrency_Success() {
         // Given
-        UserCurrencyEntity before = currencyService.getUserCurrency(1001L, "GOLD");
+        UserCurrencyEntity before = currencyService.getUserCurrency(1001L, CurrencyType.GOLD);
         assertEquals(10000L, before.getAmount());
         assertEquals(0, before.getVersion());
 
         // When
         Long afterAmount = currencyService.increaseCurrency(
-                1001L, "GOLD", 500L, "RECHARGE", "ORDER_001", "测试充值");
+                1001L, CurrencyType.GOLD, 500L, ChangeCurrencyType.RECHARGE, "ORDER_001", "测试充值");
 
         // Then
         assertEquals(10500L, afterAmount);
 
         // 验证数据库是否真的更新
-        UserCurrencyEntity after = currencyService.getUserCurrency(1001L, "GOLD");
+        UserCurrencyEntity after = currencyService.getUserCurrency(1001L, CurrencyType.GOLD);
         assertEquals(10500L, after.getAmount());
         assertEquals(1, after.getVersion()); // 乐观锁版本号应该增加
     }
@@ -151,13 +151,13 @@ class UserServiceImplTest {
     void decreaseCurrency_Success() {
         // When
         Long afterAmount = currencyService.decreaseCurrency(
-                1001L, "GOLD", 300L, "GAME_LOSE", null, "输牌扣金币");
+                1001L, CurrencyType.GOLD, 300L, ChangeCurrencyType.GAME_LOSE, null, "输牌扣金币");
 
         // Then
         assertEquals(9700L, afterAmount);
 
         // 验证数据库
-        UserCurrencyEntity currency = currencyService.getUserCurrency(1001L, "GOLD");
+        UserCurrencyEntity currency = currencyService.getUserCurrency(1001L, CurrencyType.GOLD);
         assertEquals(9700L, currency.getAmount());
         assertEquals(1, currency.getVersion());
     }
@@ -166,22 +166,22 @@ class UserServiceImplTest {
     @DisplayName("减少货币失败 - 余额不足")
     void decreaseCurrency_InsufficientBalance() {
         assertThrows(MsgException.class, () -> {
-            currencyService.decreaseCurrency(1001L, "GOLD", 20000L, "GAME_LOSE", null, null);
+            currencyService.decreaseCurrency(1001L, CurrencyType.GOLD, 20000L, ChangeCurrencyType.GAME_LOSE, null, null);
         });
 
         // 验证余额没有被扣减
-        UserCurrencyEntity currency = currencyService.getUserCurrency(1001L, "GOLD");
+        UserCurrencyEntity currency = currencyService.getUserCurrency(1001L, CurrencyType.GOLD);
         assertEquals(10000L, currency.getAmount());
     }
 
     @Test
     @DisplayName("获取货币 - 验证返回正确的货币信息")
     void getUserCurrency_Success() {
-        UserCurrencyEntity currency = currencyService.getUserCurrency(1001L, "GOLD");
+        UserCurrencyEntity currency = currencyService.getUserCurrency(1001L, CurrencyType.GOLD);
 
         assertNotNull(currency);
         assertEquals(1001L, currency.getUserId());
-        assertEquals("GOLD", currency.getCurrencyType());
+        assertEquals(CurrencyType.GOLD, currency.getCurrencyType());
         assertEquals(10000L, currency.getAmount());
     }
 
@@ -189,7 +189,7 @@ class UserServiceImplTest {
     @DisplayName("获取不存在的货币类型 - 抛出异常")
     void getUserCurrency_NotFound() {
         assertThrows(MsgException.class, () -> {
-            currencyService.getUserCurrency(1001L, "NONEXISTENT");
+            currencyService.getUserCurrency(1001L, null);
         });
     }
 

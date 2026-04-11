@@ -1,5 +1,7 @@
 package com.pokergame.user.service;
 
+import com.pokergame.common.enums.ChangeCurrencyType;
+import com.pokergame.common.enums.CurrencyType;
 import com.pokergame.user.entity.UserCurrencyEntity;
 
 import java.util.List;
@@ -26,7 +28,7 @@ public interface CurrencyService {
      * @param currencyType 货币类型
      * @return 货币实体
      */
-    UserCurrencyEntity getUserCurrency(Long userId, String currencyType);
+    UserCurrencyEntity getUserCurrency(Long userId, CurrencyType currencyType);
 
     /**
      * 增加货币（带乐观锁重试）
@@ -39,8 +41,8 @@ public interface CurrencyService {
      * @param remark       备注（可选）
      * @return 变更后数量
      */
-    Long increaseCurrency(Long userId, String currencyType, Long amount,
-                          String changeType, String orderId, String remark);
+    Long increaseCurrency(Long userId, CurrencyType currencyType, Long amount,
+                          ChangeCurrencyType changeType, String orderId, String remark);
 
     /**
      * 减少货币（带乐观锁重试）
@@ -53,8 +55,8 @@ public interface CurrencyService {
      * @param remark       备注（可选）
      * @return 变更后数量
      */
-    Long decreaseCurrency(Long userId, String currencyType, Long amount,
-                          String changeType, String orderId, String remark);
+    Long decreaseCurrency(Long userId, CurrencyType currencyType, Long amount,
+                          ChangeCurrencyType changeType, String orderId, String remark);
 
     /**
      * 检查余额是否充足
@@ -64,5 +66,5 @@ public interface CurrencyService {
      * @param amount       需要数量
      * @return true-充足，false-不足
      */
-    boolean checkBalance(Long userId, String currencyType, Long amount);
+    boolean checkBalance(Long userId, CurrencyType currencyType, Long amount);
 }

@@ -1,1 +1,2 @@
+com.pokergame.starter.redis.util.RedisKeyUtil
 com.pokergame.starter.redis.config.RedisAutoConfiguration
