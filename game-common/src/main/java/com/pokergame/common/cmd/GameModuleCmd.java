@@ -17,17 +17,26 @@ public interface GameModuleCmd {
     /** 用户服模块 */
     int USER_CMD = 1;
 
+    /** 令牌模块 */
+    int TOKEN_CMD = 2;
+
+    /** 货币模块 */
+    int CURRENCY_CMD = 3;
+
     /** 匹配服模块 */
-    int MATCH_CMD = 2;
+    int MATCH_CMD = 4;
 
     /** 排行榜模块 */
-    int RANK_CMD = 3;
+    int RANK_CMD = 5;
 
     /** 聊天模块 */
-    int CHAT_CMD = 4;
+    int CHAT_CMD = 6;
 
     /** 大厅模块 */
-    int HALL_CMD = 5;
+    int HALL_CMD = 7;
+
+    /** 管理模块 */
+    int ADMIN_CMD = 8;
 
     // ========== 游戏模块 (101-200) ==========
 

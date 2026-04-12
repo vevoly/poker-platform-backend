@@ -1,201 +1,142 @@
 package com.pokergame.user.action;
 
+import cn.hutool.core.util.StrUtil;
 import com.iohao.game.action.skeleton.annotation.ActionController;
 import com.iohao.game.action.skeleton.annotation.ActionMethod;
-import com.iohao.game.action.skeleton.core.flow.FlowContext;
-import com.iohao.game.common.kit.RandomKit;
-import com.iohao.game.common.kit.concurrent.TaskKit;
+import com.iohao.game.action.skeleton.core.exception.MsgException;
 import com.pokergame.common.cmd.UserCmd;
-import com.pokergame.common.msg.UserInfo;
-import com.pokergame.common.msg.UserLoginReq;
-import com.pokergame.common.msg.UserLoginRes;
+import com.pokergame.common.exception.GameCode;
+import com.pokergame.common.model.user.*;
+import com.pokergame.common.util.ValidationUtils;
+import com.pokergame.user.config.TokenService;
+import com.pokergame.user.converter.UserConverter;
+import com.pokergame.user.entity.UserEntity;
+import com.pokergame.user.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
+import java.time.ZoneId;
 
 /**
- * 用户Action
+ * 用户 Action
+ * 处理用户注册、登录、信息查询、登出等 RPC 请求
  *
  * @author 游戏平台
  * @date 2024-03-26
  */
 @Slf4j
+@Component
+@RequiredArgsConstructor
 @ActionController(UserCmd.CMD)
 public class UserAction {
 
-    /** 模拟用户数据存储 */
-    private static final ConcurrentHashMap<Long, UserInfo> userStorage = new ConcurrentHashMap<>();
+    private final UserService userService;
+    private final TokenService tokenService;
+    private final UserConverter userConverter;
 
-    static {
-        // 初始化测试用户数据
-        UserInfo user1 = new UserInfo();
-        user1.userId = 1001L;
-        user1.username = "testuser1";
-        user1.nickname = "测试用户1";
-        user1.gold = 1000;
-        user1.level = 1;
-        user1.exp = 0;
-        userStorage.put(user1.userId, user1);
+    /**
+     * 用户注册
+     */
+    @ActionMethod(UserCmd.REGISTER)
+    public RegisterResp register(RegisterReq req) throws MsgException {
+        log.info("RPC 注册请求: username={}, mobile={}, email={}",
+                req.getUsername(), req.getMobile(), req.getEmail());
 
-        UserInfo user2 = new UserInfo();
-        user2.userId = 1002L;
-        user2.username = "testuser2";
-        user2.nickname = "测试用户2";
-        user2.gold = 2000;
-        user2.level = 2;
-        user2.exp = 100;
-        userStorage.put(user2.userId, user2);
+        // 参数校验（声明式注解 + 统一工具类）
+        ValidationUtils.validate(req);
+
+        // 额外业务校验：至少提供一种账号标识
+        boolean hasUsername = StrUtil.isNotBlank(req.getUsername());
+        boolean hasMobile = StrUtil.isNotBlank(req.getMobile());
+        boolean hasEmail = StrUtil.isNotBlank(req.getEmail());
+        GameCode.PARAM_ERROR.assertTrueThrows(!hasUsername && !hasMobile && !hasEmail,
+                "用户名、手机号、邮箱至少填写一项");
+
+        Long userId = userService.register(req);
+        UserEntity user = userService.getById(userId);
+
+        RegisterResp resp = new RegisterResp();
+        resp.setUserId(userId);
+        resp.setUserCode(user.getUserCode());
+        resp.setUsername(user.getUsername());
+        resp.setNickname(user.getNickname());
+
+        log.info("RPC 注册成功: userId={}", userId);
+        return resp;
     }
 
     /**
      * 用户登录
      */
     @ActionMethod(UserCmd.LOGIN)
-    public UserLoginRes login(UserLoginReq req, FlowContext flowContext) {
-        log.info("用户登录请求: username={}", req.username);
+    public LoginResp login(LoginReq req) throws MsgException {
+        log.info("RPC 登录请求: username={}, mobile={}, email={}",
+                req.getUsername(), req.getMobile(), req.getEmail());
 
-        // 模拟登录验证
-        UserInfo user = findUserByUsername(req.username);
+        // 参数校验
+        ValidationUtils.validate(req);
 
-        UserLoginRes res = new UserLoginRes();
+        // 业务校验：至少提供一种账号标识
+        boolean hasUsername = StrUtil.isNotBlank(req.getUsername());
+        boolean hasMobile = StrUtil.isNotBlank(req.getMobile());
+        boolean hasEmail = StrUtil.isNotBlank(req.getEmail());
+        GameCode.PARAM_ERROR.assertTrueThrows(!hasUsername && !hasMobile && !hasEmail,
+                "用户名、手机号、邮箱至少填写一项");
 
-        if (user != null) {
-            res.success = true;
-            res.userInfo = user;
-            log.info("用户登录成功: userId={}", user.userId);
-        } else {
-            res.success = false;
-            res.errorMessage = "用户不存在";
-            log.warn("用户登录失败: username={}", req.username);
+        UserEntity user = userService.login(req);
+        String token = tokenService.createToken(user.getId());
+
+        LoginResp resp = new LoginResp();
+        resp.setUserId(user.getId());
+        resp.setUserCode(user.getUserCode());
+        resp.setUsername(user.getUsername());
+        resp.setNickname(user.getNickname());
+        resp.setAvatar(user.getAvatar());
+        resp.setStatus(user.getStatus());
+        resp.setToken(token);
+        resp.setTokenExpireTime(System.currentTimeMillis() + 24 * 3600 * 1000L);
+        if (user.getLastLoginTime() != null) {
+            resp.setLastLoginTime(user.getLastLoginTime()
+                    .atZone(ZoneId.systemDefault())
+                    .toInstant()
+                    .toEpochMilli());
         }
 
-        return res;
+        log.info("RPC 登录成功: userId={}", user.getId());
+        return resp;
     }
 
     /**
      * 获取用户信息
      */
     @ActionMethod(UserCmd.GET_USER_INFO)
-    public UserInfo getUserInfo(FlowContext flowContext) {
-        long userId = flowContext.getUserId();
-        log.info("获取用户信息: userId={}", userId);
+    public GetUserInfoResp getUserInfo(GetUserInfoReq req) throws MsgException {
+        log.info("RPC 获取用户信息: userId={}", req.getUserId());
 
-        UserInfo user = userStorage.get(userId);
-        if (user == null) {
-            // 创建默认用户信息
-            user = createDefaultUser(userId);
-            userStorage.put(userId, user);
-        }
+        ValidationUtils.validate(req);
 
-        return user;
-    }
+        UserEntity user = userService.checkAndGetUser(req.getUserId());
 
-//    /**
-//     * 扣除金币
-//     */
-//    @ActionMethod(UserCmd.DEDUCT_GOLD)
-//    public ResponseMessage deductGold(FlowContext flowContext) {
-//        long userId = flowContext.getUserId();
-//        int amount = (Integer) flowContext.getData();
-//
-//        log.info("扣除金币: userId={}, amount={}", userId, amount);
-//
-//        UserInfo user = userStorage.get(userId);
-//        if (user == null) {
-//            return ResponseMessageBuilder.error("用户不存在");
-//        }
-//
-//        if (user.gold < amount) {
-//            return ResponseMessageBuilder.error("金币不足");
-//        }
-//
-//        user.gold -= amount;
-//        log.info("扣除金币成功: userId={}, newGold={}", userId, user.gold);
-//
-//        return ResponseMessageBuilder.ok();
-//    }
-//
-//    /**
-//     * 增加金币
-//     */
-//    @ActionMethod(UserCmd.ADD_GOLD)
-//    public ResponseMessage addGold(FlowContext flowContext) {
-//        long userId = flowContext.getUserId();
-//        int amount = (Integer) flowContext.getData();
-//
-//        log.info("增加金币: userId={}, amount={}", userId, amount);
-//
-//        UserInfo user = userStorage.get(userId);
-//        if (user == null) {
-//            return ResponseMessageBuilder.error("用户不存在");
-//        }
-//
-//        user.gold += amount;
-//        log.info("增加金币成功: userId={}, newGold={}", userId, user.gold);
-//
-//        return ResponseMessageBuilder.ok();
-//    }
-//
-//    /**
-//     * 检查金币
-//     */
-//    @ActionMethod(UserCmd.CHECK_GOLD)
-//    public ResponseMessage checkGold(FlowContext flowContext) {
-//        long userId = flowContext.getUserId();
-//        int requiredGold = (Integer) flowContext.getData();
-//
-//        log.info("检查金币: userId={}, requiredGold={}", userId, requiredGold);
-//
-//        UserInfo user = userStorage.get(userId);
-//        if (user == null) {
-//            return ResponseMessageBuilder.error("用户不存在");
-//        }
-//
-//        boolean enough = user.gold >= requiredGold;
-//        log.info("金币检查结果: userId={}, enough={}", userId, enough);
-//
-//        return ResponseMessageBuilder.ok(enough);
-//    }
+        GetUserInfoResp resp = new GetUserInfoResp();
+        resp.setUser(userConverter.toDTO(user));
 
-    /**
-     * 模拟用户登录验证
-     */
-    private UserInfo findUserByUsername(String username) {
-        // 模拟数据库查询延迟
-        try {
-            TimeUnit.MILLISECONDS.sleep(RandomKit.random(100, 500));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        // 简单的用户名验证
-        for (UserInfo user : userStorage.values()) {
-            if (user.username.equals(username)) {
-                return user;
-            }
-        }
-        return null;
+        return resp;
     }
 
     /**
-     * 创建默认用户
+     * 用户登出
      */
-    private UserInfo createDefaultUser(long userId) {
-        UserInfo user = new UserInfo();
-        user.userId = userId;
-        user.username = "user" + userId;
-        user.nickname = "玩家" + userId;
-        user.gold = 100;
-        user.level = 1;
-        user.exp = 0;
+    @ActionMethod(UserCmd.LOGOUT)
+    public LogoutResp logout(LogoutReq req) throws MsgException {
+        log.info("RPC 登出请求: userId={}", req.getUserId());
 
-        // 模拟异步保存用户数据
-        TaskKit.executeVirtual(() -> {
-            log.info("异步保存新用户数据: userId={}", userId);
-            // 这里可以添加实际的数据库保存逻辑
-        });
+        ValidationUtils.validate(req);
 
-        return user;
+        tokenService.invalidateToken(req.getToken());
+
+        LogoutResp resp = new LogoutResp();
+        log.info("RPC 登出成功: userId={}", req.getUserId());
+        return resp;
     }
 }

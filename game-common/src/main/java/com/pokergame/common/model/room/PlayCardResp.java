@@ -3,7 +3,6 @@ package com.pokergame.common.model.room;
 import com.baidu.bjf.remoting.protobuf.annotation.ProtobufClass;
 import com.pokergame.common.card.Card;
 import com.pokergame.common.card.CardPattern;
-import com.pokergame.common.model.CommonRep;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -15,7 +14,7 @@ import java.util.List;
 @ProtobufClass
 @Accessors(chain = true)
 @FieldDefaults(level = AccessLevel.PUBLIC)
-public class PlayCardResp extends CommonRep {
+public class PlayCardResp {
 
     /** 出的牌 */
     private List<Card> cards;

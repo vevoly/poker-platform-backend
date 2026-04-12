@@ -21,16 +21,14 @@ public interface UserConverter extends BaseConverter<UserEntity, UserDTO> {
 
     @Override
     @Mapping(source = "id", target = "userId")
-    @Mapping(source = "createTime", target = "registerTime")
-    @Mapping(source = "lastLoginTime", target = "lastLoginTime")
+    @Mapping(source = "lastLoginTime", target = "lastLoginTime", qualifiedByName = "localDateTimeToLong")
     // 注意：UserDTO 中没有 password、createBy、updateBy、updateTime、delFlag、extra 字段
     // 所以不需要写 ignore，MapStruct 会自动忽略不存在的目标字段
-    UserDTO toModel(UserEntity entity);
+    UserDTO toDTO(UserEntity entity);
 
     @Override
     @Mapping(source = "userId", target = "id")
-    @Mapping(source = "registerTime", target = "createTime")
-    @Mapping(source = "lastLoginTime", target = "lastLoginTime")
+    @Mapping(source = "lastLoginTime", target = "lastLoginTime", qualifiedByName = "longToLocalDateTime")
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "createBy", ignore = true)
     @Mapping(target = "updateBy", ignore = true)

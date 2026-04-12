@@ -1,7 +1,6 @@
 package com.pokergame.common.model.game.doudizhu;
 
 import com.baidu.bjf.remoting.protobuf.annotation.ProtobufClass;
-import com.pokergame.common.model.CommonRep;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -11,7 +10,7 @@ import lombok.experimental.FieldDefaults;
 @ProtobufClass
 @Accessors(chain = true)
 @FieldDefaults(level = AccessLevel.PUBLIC)
-public class GrabLandlordResp extends CommonRep {
+public class GrabLandlordResp {
 
     /** 地主ID */
     private long landlordId;

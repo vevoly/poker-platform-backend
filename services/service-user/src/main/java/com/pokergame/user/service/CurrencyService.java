@@ -1,7 +1,9 @@
 package com.pokergame.user.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.pokergame.common.enums.ChangeCurrencyType;
 import com.pokergame.common.enums.CurrencyType;
+import com.pokergame.user.entity.CurrencyChangeLogEntity;
 import com.pokergame.user.entity.UserCurrencyEntity;
 
 import java.util.List;
@@ -67,4 +69,15 @@ public interface CurrencyService {
      * @return true-充足，false-不足
      */
     boolean checkBalance(Long userId, CurrencyType currencyType, Long amount);
+
+    /**
+     * 分页查询货币变更流水
+     *
+     * @param userId       用户ID
+     * @param currencyType 货币类型（可选）
+     * @param page         页码
+     * @param pageSize     页大小
+     * @return 货币变更流水列表
+     */
+    IPage<CurrencyChangeLogEntity> getCurrencyLogPage(Long userId, String currencyType, int page, int pageSize);
 }

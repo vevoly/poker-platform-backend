@@ -14,7 +14,7 @@ import com.pokergame.common.pattern.PatternRecognizer;
 import com.pokergame.common.pattern.PatternRecognizerFactory;
 import com.pokergame.common.rule.ValidationResult;
 
-import com.pokergame.core.exception.GameCode;
+import com.pokergame.common.exception.GameCode;
 import com.pokergame.game.doudizhu.bidding.BiddingManager;
 import com.pokergame.game.doudizhu.broadcast.DoudizhuBroadcastKit;
 import com.pokergame.game.doudizhu.enums.DoudizhuGameStatus;

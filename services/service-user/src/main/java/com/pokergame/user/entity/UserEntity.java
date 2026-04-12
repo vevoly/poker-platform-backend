@@ -7,6 +7,7 @@ import com.pokergame.starter.mybatis.handler.JacksonTypeHandler;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -21,19 +22,49 @@ import java.time.LocalDateTime;
 public class UserEntity extends BaseEntity {
 
     /**
-     * 用户名（唯一）
+     * 用户业务编码（对外公开的唯一标识，避免暴露内部ID）
+     */
+    @TableField("user_code")
+    private String userCode;
+
+    /**
+     * 用户名（可选，唯一）
      */
     @TableField("username")
     private String username;
 
     /**
-     * 密码（BCrypt加密）
+     * 手机号（唯一，用于登录和绑定）
+     */
+    @TableField("mobile")
+    private String mobile;
+
+    /**
+     * 邮箱（唯一，用于登录和绑定）
+     */
+    @TableField("email")
+    private String email;
+
+    /**
+     * 登录密码（BCrypt加密存储）
      */
     @TableField("password")
     private String password;
 
     /**
-     * 昵称
+     * 手机号是否已绑定（0-未绑定，1-已绑定）
+     */
+    @TableField("bind_mobile")
+    private Integer bindMobile;
+
+    /**
+     * 邮箱是否已绑定（0-未绑定，1-已绑定）
+     */
+    @TableField("bind_email")
+    private Integer bindEmail;
+
+    /**
+     * 用户昵称
      */
     @TableField("nickname")
     private String nickname;
@@ -45,7 +76,7 @@ public class UserEntity extends BaseEntity {
     private String avatar;
 
     /**
-     * 状态：0禁用，1正常
+     * 用户状态：0-禁用，1-正常
      */
     @TableField("status")
     private Integer status;
@@ -57,8 +88,31 @@ public class UserEntity extends BaseEntity {
     private LocalDateTime lastLoginTime;
 
     /**
-     * 扩展字段（JSON格式）
-     * 使用 JacksonTypeHandler 自动转换 Map/JSON
+     * 最后登录IP
+     */
+    @TableField("last_login_ip")
+    private String lastLoginIp;
+
+    /**
+     * 最后登录设备ID
+     */
+    @TableField("last_login_device_id")
+    private String lastLoginDeviceId;
+
+    /**
+     * 最后登录纬度（用于风控和地域统计）
+     */
+    @TableField("last_login_latitude")
+    private BigDecimal lastLoginLatitude;
+
+    /**
+     * 最后登录经度
+     */
+    @TableField("last_login_longitude")
+    private BigDecimal lastLoginLongitude;
+
+    /**
+     * 扩展字段（JSON格式，存储非核心、易变属性）
      */
     @TableField(value = "extra", typeHandler = JacksonTypeHandler.class)
     private String extra;

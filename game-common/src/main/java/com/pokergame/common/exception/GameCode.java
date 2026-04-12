@@ -1,4 +1,4 @@
-package com.pokergame.core.exception;
+package com.pokergame.common.exception;
 
 import com.iohao.game.action.skeleton.core.exception.MsgException;
 import com.iohao.game.action.skeleton.core.exception.MsgExceptionInfo;
@@ -55,18 +55,29 @@ public enum GameCode implements MsgExceptionInfo {
     USER_NOT_FOUND(201001, "用户不存在"),
     USER_DISABLED(201002, "用户已被禁用"),
     USERNAME_EXISTS(201003, "用户名已存在"),
-    PASSWORD_ERROR(201004, "密码错误"),
+    PASSWORD_ERROR(201004, "用户名或密码错误"),
     LOGIN_FAILED(201005, "登录失败"),
     NOT_LOGGED_IN(201006, "未登录，请先登录"),
-    TOKEN_INVALID(201007, "Token无效"),
-    TOKEN_EXPIRED(201008, "Token已过期"),
-    TOKEN_MISSING(201009, "缺少Token"),
-    TOKEN_VERIFY_FAILED(201010, "Token验证失败"),
-    USER_REGISTER_FAILED(201011, "注册失败，请稍后重试"),
-    USER_UPDATE_FAILED(201012, "更新用户信息失败"),
-    USERNAME_INVALID(201013, "用户名格式不正确（4-20位字母数字）"),
-    PASSWORD_INVALID(201014, "密码格式不正确（6-20位）"),
-    NICKNAME_INVALID(201015, "昵称格式不正确（1-20位）"),
+
+    TOKEN_INVALID(201010, "Token无效"),
+    TOKEN_EXPIRED(201011, "Token已过期"),
+    TOKEN_MISSING(201012, "缺少Token"),
+    TOKEN_VERIFY_FAILED(201013, "Token验证失败"),
+    REFRESH_TOKEN_FAILED(201014, "刷新Token失败"),
+
+    USER_REGISTER_FAILED(201021, "注册失败，请稍后重试"),
+    USER_UPDATE_FAILED(201022, "更新用户信息失败"),
+    USERNAME_INVALID(201023, "用户名格式不正确（4-20位字母数字）"),
+    PASSWORD_INVALID(201024, "密码格式不正确（6-20位）"),
+    NICKNAME_INVALID(201025, "昵称格式不正确（1-20位）"),
+    // 手机号/邮箱相关
+    MOBILE_INVALID(201031, "手机号格式不正确"),
+    EMAIL_INVALID(201032, "邮箱格式不正确"),
+    MOBILE_EXISTS(201033, "手机号已被注册"),
+    EMAIL_EXISTS(201034, "邮箱已被注册"),
+    MOBILE_NOT_BOUND(201035, "手机号未绑定"),
+    EMAIL_NOT_BOUND(201036, "邮箱未绑定"),
+    USER_CODE_INVALID(201037, "用户编码无效"),
 
     // ========== 房间错误 (202xxx) ==========
     ROOM_NOT_FOUND(202001, "房间不存在"),

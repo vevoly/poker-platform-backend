@@ -39,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 @Transactional
 @DisplayName("货币服务集成测试")
-class CurrencyServiceIntegrationTest {
+class CurrencyServiceImplTest {
 
     @Autowired
     private CurrencyService currencyService;

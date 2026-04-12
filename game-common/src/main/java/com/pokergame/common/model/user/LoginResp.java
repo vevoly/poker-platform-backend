@@ -7,6 +7,8 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldDefaults;
 
+import java.util.List;
+
 /**
  * 用户登录响应
  *
@@ -19,15 +21,33 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PUBLIC)
 public class LoginResp {
 
-    /** 用户基本信息 */
-    private UserDTO user;
+    /** 用户ID */
+    private Long userId;
 
-    /** 登录Token（JWT） */
+    /** 用户业务编码 */
+    private String userCode;
+
+    /** 用户名 */
+    private String username;
+
+    /** 昵称 */
+    private String nickname;
+
+    /** 头像URL */
+    private String avatar;
+
+    /** 用户状态 */
+    private Integer status;
+
+    /** 登录Token */
     private String token;
 
-    /** Token过期时间（时间戳，毫秒） */
+    /** Token过期时间（毫秒时间戳） */
     private Long tokenExpireTime;
 
-    /** 最后登录时间（时间戳，毫秒） */
+    /** 最后登录时间（毫秒时间戳） */
     private Long lastLoginTime;
+
+    /** 用户货币列表（可选） */
+    private List<UserCurrencyDTO> currencies;
 }

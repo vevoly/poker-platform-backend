@@ -21,13 +21,15 @@
         <ioGame.version>21.30</ioGame.version>
         <lombok.version>1.18.34</lombok.version>
         <logback.version>1.5.6</logback.version>
-        <junit.version>4.13.2</junit.version>
+        <junit-jupiter.version>5.10.5</junit-jupiter.version>
         <spring-boot.version>3.2.12</spring-boot.version>
         <spring-retry.version>2.0.4</spring-retry.version>
         <hutool.version>5.8.22</hutool.version>
+        <mockito.version>5.14.2</mockito.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <jwt.version>4.4.0</jwt.version>
         <jackson.version>2.15.3</jackson.version>
+
     </properties>
 
     <modules>
@@ -77,6 +79,11 @@
             </dependency>
             <dependency>
                 <groupId>com.iohao.game</groupId>
+                <artifactId>common-core</artifactId>
+                <version>${ioGame.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.iohao.game</groupId>
                 <artifactId>bolt-broker-server</artifactId>
                 <version>${ioGame.version}</version>
             </dependency>
@@ -119,6 +126,11 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-web</artifactId>
                 <optional>true</optional>
+                <version>${spring-boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-validation</artifactId>
                 <version>${spring-boot.version}</version>
             </dependency>
             <!-- Spring Retry - 支持重试机制 -->
@@ -175,11 +187,26 @@
                 <artifactId>logback-classic</artifactId>
                 <version>${logback.version}</version>
             </dependency>
+            <!-- JUnit BOM 统一管理 JUnit 5 版本 -->
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>${junit.version}</version>
-                <scope>compile</scope>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit-jupiter.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Mockito 支持 java21 版本 -->
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-core</artifactId>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-junit-jupiter</artifactId>
+                <version>${mockito.version}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

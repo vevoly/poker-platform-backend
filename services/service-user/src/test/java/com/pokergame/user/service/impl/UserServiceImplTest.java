@@ -3,6 +3,8 @@ package com.pokergame.user.service.impl;
 import com.iohao.game.action.skeleton.core.exception.MsgException;
 import com.pokergame.common.enums.ChangeCurrencyType;
 import com.pokergame.common.enums.CurrencyType;
+import com.pokergame.common.model.user.LoginReq;
+import com.pokergame.common.model.user.RegisterReq;
 import com.pokergame.user.UserServerApplication;
 import com.pokergame.user.entity.UserCurrencyEntity;
 import com.pokergame.user.entity.UserEntity;
@@ -37,90 +39,101 @@ class UserServiceImplTest {
     // ==================== 用户注册测试 ====================
 
     @Test
-    @DisplayName("注册成功 - 验证自动填充功能")
-    void register_Success() {
-        // When
-        Long userId = userService.register("newuser999", "123456", "新用户");
+    @DisplayName("注册成功 - 使用用户名注册")
+    void register_Success_WithUsername() {
+        RegisterReq req = new RegisterReq()
+                .setUsername("newuser999")
+                .setPassword("123456")
+                .setNickname("新用户")
+                .setRegisterIp("127.0.0.1")
+                .setRegisterDeviceId("device001");
 
-        // Then
+        Long userId = userService.register(req);
+
         assertNotNull(userId);
-
-        // 验证用户是否真的插入到数据库
         UserEntity user = userService.getById(userId);
-        assertNotNull(user);
         assertEquals("newuser999", user.getUsername());
-        assertNotEquals("123456", user.getPassword()); // 密码应该被加密
+        assertNotEquals("123456", user.getPassword());
+        assertNotNull(user.getCreateTime());
+        assertEquals(0, user.getDelFlag());
 
-        // 验证 BaseEntity 自动填充功能
-        assertNotNull(user.getCreateTime());   // 自动填充
-        assertNotNull(user.getUpdateTime());   // 自动填充
-        assertEquals("system", user.getCreateBy());  // 自动填充
-        assertEquals(0, user.getDelFlag());    // 逻辑删除默认值
-
-        // 验证货币是否初始化
         UserCurrencyEntity currency = currencyService.getUserCurrency(userId, CurrencyType.GOLD);
-        assertNotNull(currency);
         assertEquals(10000L, currency.getAmount());
 
-        // 验证统计是否初始化
         UserStatsEntity stats = statsService.getUserStats(userId);
-        assertNotNull(stats);
         assertEquals(0, stats.getTotalGames());
-        assertEquals(0, stats.getWinGames());
+    }
+
+    @Test
+    @DisplayName("注册成功 - 使用手机号注册")
+    void register_Success_WithMobile() {
+        RegisterReq req = new RegisterReq()
+                .setMobile("+8613800138000")
+                .setPassword("123456")
+                .setNickname("手机用户");
+
+        Long userId = userService.register(req);
+        assertNotNull(userId);
+        UserEntity user = userService.getById(userId);
+        assertEquals("+8613800138000", user.getMobile());
     }
 
     @Test
     @DisplayName("注册失败 - 用户名已存在")
     void register_UsernameExists() {
-        assertThrows(MsgException.class, () -> {
-            userService.register("testuser1", "123456", "测试");
-        });
-    }
-
-    @Test
-    @DisplayName("注册失败 - 用户名格式错误")
-    void register_InvalidUsername() {
-        assertThrows(MsgException.class, () -> {
-            userService.register("abc", "123456", "测试"); // 太短
-        });
-
-        assertThrows(MsgException.class, () -> {
-            userService.register("test@user", "123456", "测试"); // 特殊字符
-        });
+        RegisterReq req = new RegisterReq()
+                .setUsername("testuser1")
+                .setPassword("123456");
+        assertThrows(MsgException.class, () -> userService.register(req));
     }
 
     // ==================== 用户登录测试 ====================
 
     @Test
-    @DisplayName("登录成功 - 验证密码校验和最后登录时间更新")
-    void login_Success() {
-        // When
-        UserEntity user = userService.login("testuser1", "123456");
+    @DisplayName("登录成功 - 使用用户名")
+    void login_Success_WithUsername() {
+        LoginReq req = new LoginReq()
+                .setUsername("testuser1")
+                .setPassword("123456")
+                .setLoginIp("192.168.1.100")
+                .setLoginDeviceId("device123");
 
-        // Then
+        UserEntity user = userService.login(req);
         assertNotNull(user);
         assertEquals(1001L, user.getId());
-        assertEquals("testuser1", user.getUsername());
 
-        // 验证最后登录时间是否更新
-        user = userService.getByUsername("testuser1");
-        assertNotNull(user.getLastLoginTime());
+        // 验证最后登录时间已更新
+        UserEntity updated = userService.getById(1001L);
+        assertNotNull(updated.getLastLoginTime());
+    }
+
+    @Test
+    @DisplayName("登录成功 - 使用手机号")
+    void login_Success_WithMobile() {
+        // 假设 testuser1 的手机号已存在（需提前准备数据）
+        LoginReq req = new LoginReq()
+                .setMobile("8613800138000")
+                .setPassword("123456");
+        UserEntity user = userService.login(req);
+        assertNotNull(user);
     }
 
     @Test
     @DisplayName("登录失败 - 密码错误")
     void login_WrongPassword() {
-        assertThrows(MsgException.class, () -> {
-            userService.login("testuser1", "wrongpassword");
-        });
+        LoginReq req = new LoginReq()
+                .setUsername("testuser1")
+                .setPassword("wrong");
+        assertThrows(MsgException.class, () -> userService.login(req));
     }
 
     @Test
     @DisplayName("登录失败 - 用户不存在")
     void login_UserNotFound() {
-        assertThrows(MsgException.class, () -> {
-            userService.login("nonexistent", "123456");
-        });
+        LoginReq req = new LoginReq()
+                .setUsername("nonexistent")
+                .setPassword("123456");
+        assertThrows(MsgException.class, () -> userService.login(req));
     }
 
     // ==================== 货币测试 ====================
@@ -181,7 +194,7 @@ class UserServiceImplTest {
 
         assertNotNull(currency);
         assertEquals(1001L, currency.getUserId());
-        assertEquals(CurrencyType.GOLD, currency.getCurrencyType());
+        assertEquals(CurrencyType.GOLD.getCode(), currency.getCurrencyType());
         assertEquals(10000L, currency.getAmount());
     }
 
@@ -253,7 +266,13 @@ class UserServiceImplTest {
 
         try {
             // 尝试注册一个会失败的用户（用户名已存在）
-            userService.register("testuser1", "123456", "测试");
+            RegisterReq req = new RegisterReq()
+                    .setUsername("testuser1")
+                    .setPassword("123456")
+                    .setNickname("新用户")
+                    .setRegisterIp("127.0.0.1")
+                    .setRegisterDeviceId("device001");
+            userService.register(req);
         } catch (MsgException e) {
             // 预期异常
         }

@@ -17,10 +17,19 @@ import lombok.experimental.Accessors;
 public class UserDTO {
 
     /** 用户ID */
-    private long userId;
+    private Long userId;
+
+    /** 用户业务编码 */
+    private String userCode;
 
     /** 用户名 */
     private String username;
+
+    /** 手机号（脱敏） */
+    private String mobile;
+
+    /** 邮箱（脱敏） */
+    private String email;
 
     /** 昵称 */
     private String nickname;
@@ -28,12 +37,9 @@ public class UserDTO {
     /** 头像 */
     private String avatar;
 
-    /** 用户状态 */
-    private int status;
+    /** 状态 */
+    private Integer status;
 
-    /** 注册时间 */
-    private long registerTime;
-
-    /** 最后登录时间 */
-    private long lastLoginTime;
+    /** 最后登录时间（时间戳） */
+    private Long lastLoginTime;
 }

@@ -1,6 +1,8 @@
 package com.pokergame.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.pokergame.common.model.user.LoginReq;
+import com.pokergame.common.model.user.RegisterReq;
 import com.pokergame.user.entity.UserEntity;
 
 /**
@@ -15,21 +17,18 @@ public interface UserService extends IService<UserEntity> {
     /**
      * 用户注册
      *
-     * @param username 用户名
-     * @param password 密码（明文）
-     * @param nickname 昵称
+     * @param req 注册请求（包含用户名/手机/邮箱、密码、风控数据等）
      * @return 用户ID
      */
-    Long register(String username, String password, String nickname);
+    Long register(RegisterReq req);
 
     /**
      * 用户登录
      *
-     * @param username 用户名
-     * @param password 密码（明文）
+     * @param req 登录请求（支持用户名/手机/邮箱，包含密码和风控数据）
      * @return 用户实体
      */
-    UserEntity login(String username, String password);
+    UserEntity login(LoginReq req);
 
     /**
      * 根据用户名查询用户
@@ -40,14 +39,23 @@ public interface UserService extends IService<UserEntity> {
     UserEntity getByUsername(String username);
 
     /**
-     * 更新最后登录时间
+     * 根据手机号查询用户
      *
-     * @param userId 用户ID
+     * @param mobile 手机号
+     * @return 用户实体
      */
-    void updateLastLoginTime(Long userId);
+    UserEntity getByMobile(String mobile);
 
     /**
-     * 校验用户是否存在
+     * 根据邮箱查询用户
+     *
+     * @param email 邮箱
+     * @return 用户实体
+     */
+    UserEntity getByEmail(String email);
+
+    /**
+     * 校验用户是否存在且状态正常
      *
      * @param userId 用户ID
      * @return 用户实体

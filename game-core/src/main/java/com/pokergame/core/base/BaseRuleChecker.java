@@ -8,7 +8,7 @@ import com.pokergame.common.pattern.PatternRecognizerFactory;
 import com.pokergame.common.pattern.PatternResult;
 import com.pokergame.common.rule.ValidationResult;
 import com.pokergame.common.game.GameType;
-import com.pokergame.core.exception.GameCode;
+import com.pokergame.common.exception.GameCode;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;

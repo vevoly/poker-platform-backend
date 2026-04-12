@@ -1,8 +1,6 @@
 package com.pokergame.common.converter;
 
-import org.mapstruct.BeanMapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -20,7 +18,7 @@ public interface BaseConverter<E, M> {
     /**
      * Entity → Model
      */
-    M toModel(E entity);
+    M toDTO(E entity);
 
     /**
      * Model → Entity
@@ -30,7 +28,7 @@ public interface BaseConverter<E, M> {
     /**
      * Entity List → Model List
      */
-    List<M> toModelList(List<E> entityList);
+    List<M> toDTOList(List<E> entityList);
 
     /**
      * Model List → Entity List
@@ -40,8 +38,18 @@ public interface BaseConverter<E, M> {
     /**
      * 更新 Entity（从 Model）
      */
+//    @Mapping(target = "createTime", ignore = true)
+//    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+//    void updateEntity(M model, @MappingTarget E entity);
+
+    /**
+     * 更新 Entity（从 Model）
+     * 默认空实现，子类可按需覆盖
+     */
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void updateEntity(M model, @MappingTarget E entity);
+    default void updateEntity(M model, @MappingTarget E entity) {
+        // 默认不做任何映射，子类按需覆盖
+    }
 
     // ==================== 通用类型转换方法 ====================
 
@@ -53,6 +61,7 @@ public interface BaseConverter<E, M> {
      * @param localDateTime LocalDateTime 对象
      * @return 毫秒时间戳，null 返回 null
      */
+    @Named("localDateTimeToLong")
     default Long localDateTimeToLong(LocalDateTime localDateTime) {
         if (localDateTime == null) {
             return null;
@@ -68,6 +77,7 @@ public interface BaseConverter<E, M> {
      * @param timestamp 毫秒时间戳
      * @return LocalDateTime 对象，null 或 0 返回 null
      */
+    @Named("longToLocalDateTime")
     default LocalDateTime longToLocalDateTime(Long timestamp) {
         if (timestamp == null || timestamp == 0) {
             return null;
@@ -80,6 +90,7 @@ public interface BaseConverter<E, M> {
     /**
      * String → Long（用于字符串ID转换）
      */
+    @Named("stringToLong")
     default Long stringToLong(String str) {
         if (str == null || str.isEmpty()) {
             return null;
@@ -94,6 +105,7 @@ public interface BaseConverter<E, M> {
     /**
      * Long → String
      */
+    @Named("longToString")
     default String longToString(Long value) {
         return value != null ? String.valueOf(value) : null;
     }
@@ -101,6 +113,7 @@ public interface BaseConverter<E, M> {
     /**
      * Integer → Boolean（0/1 转 boolean）
      */
+    @Named("intToBoolean")
     default Boolean intToBoolean(Integer value) {
         if (value == null) {
             return null;
@@ -111,6 +124,7 @@ public interface BaseConverter<E, M> {
     /**
      * Boolean → Integer
      */
+    @Named("booleanToInt")
     default Integer booleanToInt(Boolean value) {
         if (value == null) {
             return null;

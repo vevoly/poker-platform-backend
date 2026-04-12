@@ -10,6 +10,12 @@ import com.pokergame.user.entity.UserStatsEntity;
 public interface UserStatsService {
 
     /**
+     * 初始化用户统计信息
+     * @param userId
+     */
+    void initUserStats(Long userId);
+
+    /**
      * 获取用户统计信息
      *
      * @param userId 用户ID

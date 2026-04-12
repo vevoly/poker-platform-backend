@@ -1,9 +1,13 @@
 package com.pokergame.user.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.iohao.game.action.skeleton.core.exception.MsgException;
 import com.pokergame.common.enums.ChangeCurrencyType;
 import com.pokergame.common.enums.CurrencyType;
-import com.pokergame.core.exception.GameCode;
+import com.pokergame.common.exception.GameCode;
+import com.pokergame.common.exception.OptimisticLockException;
 import com.pokergame.user.entity.CurrencyChangeLogEntity;
 import com.pokergame.user.entity.UserCurrencyEntity;
 import com.pokergame.user.mapper.CurrencyChangeLogMapper;
@@ -58,7 +62,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     @Retryable(
-            value = {MsgException.class},  // 明确指定重试的异常类型
+            value = {OptimisticLockException.class},  // 明确指定重试的异常类型
             maxAttempts = MAX_RETRY_ATTEMPTS,
             backoff = @Backoff(delay = RETRY_DELAY_MS, multiplier = RETRY_MULTIPLIER, random = true, maxDelay = RETRY_MAX_DELAY_MS)
     )
@@ -74,7 +78,16 @@ public class CurrencyServiceImpl implements CurrencyService {
 
         // 2. 获取当前货币信息
         UserCurrencyEntity currency = userCurrencyMapper.selectByUserIdAndType(userId, currencyType.getCode());
-        GameCode.CURRENCY_NOT_FOUND.assertTrueThrows(currency == null);
+        if (currency == null) {
+            // 货币不存在，创建一条初始记录
+            currency = new UserCurrencyEntity();
+            currency.setUserId(userId);
+            currency.setCurrencyType(currencyType.getCode());
+            currency.setAmount(0L);
+            currency.setVersion(0);
+            userCurrencyMapper.insert(currency);
+            log.debug("货币记录不存在，已创建初始记录，userId: {}, currencyType: {}", userId, currencyType.getCode());
+        }
 
         Long beforeAmount = currency.getAmount();
         Integer version = currency.getVersion();
@@ -87,8 +100,7 @@ public class CurrencyServiceImpl implements CurrencyService {
             log.warn("增加货币失败，乐观锁冲突，将重试，userId: {}, currencyType: {}, amount: {}, version: {}",
                     userId, currencyType.getCode(), amount, version);
             // 直接抛出 MsgException，而不是使用 GameCode 的断言
-            throw new MsgException(GameCode.CURRENCY_OPERATION_CONFLICT.getCode(),
-                    GameCode.CURRENCY_OPERATION_CONFLICT.getMsg());
+            throw new OptimisticLockException();
         }
 
         Long afterAmount = beforeAmount + amount;
@@ -105,7 +117,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     @Retryable(
-            value = {MsgException.class},
+            value = {OptimisticLockException.class},
             maxAttempts = MAX_RETRY_ATTEMPTS,
             backoff = @Backoff(delay = RETRY_DELAY_MS, multiplier = RETRY_MULTIPLIER, random = true, maxDelay = RETRY_MAX_DELAY_MS)
     )
@@ -140,8 +152,7 @@ public class CurrencyServiceImpl implements CurrencyService {
         if (result <= 0) {
             log.warn("减少货币失败，乐观锁冲突，将重试，userId: {}, currencyType: {}, amount: {}, version: {}",
                     userId, currencyType.getCode(), amount, version);
-            throw new MsgException(GameCode.CURRENCY_OPERATION_CONFLICT.getCode(),
-                    GameCode.CURRENCY_OPERATION_CONFLICT.getMsg());
+            throw new OptimisticLockException();
         }
 
         Long afterAmount = beforeAmount - amount;
@@ -166,6 +177,18 @@ public class CurrencyServiceImpl implements CurrencyService {
             return false;
         }
         return currency.getAmount() >= amount;
+    }
+
+    @Override
+    public IPage<CurrencyChangeLogEntity> getCurrencyLogPage(Long userId, String currencyType, int page, int pageSize) {
+        LambdaQueryWrapper<CurrencyChangeLogEntity> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CurrencyChangeLogEntity::getUserId, userId);
+        if (currencyType != null && !currencyType.isEmpty()) {
+            wrapper.eq(CurrencyChangeLogEntity::getCurrencyType, currencyType);
+        }
+        wrapper.orderByDesc(CurrencyChangeLogEntity::getCreateTime);
+        Page<CurrencyChangeLogEntity> pageParam = new Page<>(page, pageSize);
+        return currencyChangeLogMapper.selectPage(pageParam, wrapper);
     }
 
     /**

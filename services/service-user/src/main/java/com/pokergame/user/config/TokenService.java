@@ -4,7 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.pokergame.core.exception.GameCode;
+import com.pokergame.common.exception.GameCode;
 import com.pokergame.starter.redis.enums.RedisKey;
 import com.pokergame.starter.redis.util.RedisKeyUtil;
 import lombok.extern.slf4j.Slf4j;

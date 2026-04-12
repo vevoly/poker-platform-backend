@@ -2,26 +2,17 @@ package com.pokergame.game.doudizhu.action;
 
 import com.iohao.game.action.skeleton.annotation.ActionController;
 import com.iohao.game.action.skeleton.annotation.ActionMethod;
-import com.iohao.game.action.skeleton.core.exception.MsgException;
 import com.iohao.game.action.skeleton.core.flow.FlowContext;
 import com.iohao.game.widget.light.room.flow.RoomCreateContext;
-import com.pokergame.common.card.CardPattern;
 import com.pokergame.common.cmd.DoudizhuCmd;
-import com.pokergame.common.game.GameType;
-import com.pokergame.common.model.CommonRep;
 import com.pokergame.common.model.player.PlayerInfo;
 import com.pokergame.common.model.room.*;
-import com.pokergame.common.pattern.PatternRecognizer;
-import com.pokergame.common.pattern.PatternRecognizerFactory;
-import com.pokergame.common.rule.ValidationResult;
-import com.pokergame.core.exception.GameCode;
-import com.pokergame.game.doudizhu.broadcast.DoudizhuBroadcastKit;
+import com.pokergame.common.exception.GameCode;
 import com.pokergame.game.doudizhu.enums.DoudizhuGameStatus;
 import com.pokergame.game.doudizhu.enums.InternalOperation;
 import com.pokergame.game.doudizhu.room.DoudizhuPlayer;
 import com.pokergame.game.doudizhu.room.DoudizhuRoom;
 import com.pokergame.game.doudizhu.room.DoudizhuRoomService;
-import com.pokergame.game.doudizhu.rule.DoudizhuRuleChecker;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -153,7 +144,7 @@ public class RoomAction {
      * @param ctx FlowContext
      */
     @ActionMethod(DoudizhuCmd.LEAVE_ROOM)
-    public CommonRep leaveRoom(LeaveRoomReq req, FlowContext ctx) {
+    public CommonResp leaveRoom(LeaveRoomReq req, FlowContext ctx) {
         long userId = ctx.getUserId();
 
         DoudizhuRoom room = roomService.getUserRoom(userId);
@@ -164,6 +155,6 @@ public class RoomAction {
         // 触发 OperationHandler 处理离开逻辑（移除玩家、广播等）
         room.operation(InternalOperation.QUIT_ROOM);
 
-        return CommonRep.success();
+        return CommonResp.success();
     }
 }

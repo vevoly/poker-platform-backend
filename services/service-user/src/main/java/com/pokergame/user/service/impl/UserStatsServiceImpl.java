@@ -1,6 +1,6 @@
 package com.pokergame.user.service.impl;
 
-import com.pokergame.core.exception.GameCode;
+import com.pokergame.common.exception.GameCode;
 import com.pokergame.user.entity.UserStatsEntity;
 import com.pokergame.user.mapper.UserStatsMapper;
 import com.pokergame.user.service.UserStatsService;
@@ -20,6 +20,20 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserStatsServiceImpl implements UserStatsService {
 
     private final UserStatsMapper userStatsMapper;
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void initUserStats(Long userId) {
+        GameCode.PARAM_ERROR.assertTrueThrows(userId == null, "用户ID不能为空");
+        UserStatsEntity stats = new UserStatsEntity();
+        stats.setUserId(userId);
+        stats.setTotalGames(0);
+        stats.setWinGames(0);
+        stats.setConsecutiveWins(0);
+        stats.setConsecutiveLosses(0);
+        userStatsMapper.insert(stats);
+        log.debug("用户统计初始化成功，userId={}", userId);
+    }
 
     @Override
     public UserStatsEntity getUserStats(Long userId) {

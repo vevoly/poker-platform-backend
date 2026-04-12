@@ -20,7 +20,7 @@ public interface CurrencyConverter extends BaseConverter<UserCurrencyEntity, Use
     @Mapping(source = "userId", target = "userId")
     @Mapping(source = "currencyType", target = "currencyType")
     @Mapping(source = "amount", target = "amount")
-    UserCurrencyDTO toModel(UserCurrencyEntity entity);
+    UserCurrencyDTO toDTO(UserCurrencyEntity entity);
 
     @Override
     @Mapping(source = "userId", target = "userId")
