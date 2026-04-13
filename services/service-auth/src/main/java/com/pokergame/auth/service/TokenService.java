@@ -1,4 +1,4 @@
-package com.pokergame.user.config;
+package com.pokergame.auth.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;

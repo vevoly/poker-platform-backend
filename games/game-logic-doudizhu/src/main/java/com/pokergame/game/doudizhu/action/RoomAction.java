@@ -144,7 +144,7 @@ public class RoomAction {
      * @param ctx FlowContext
      */
     @ActionMethod(DoudizhuCmd.LEAVE_ROOM)
-    public CommonResp leaveRoom(LeaveRoomReq req, FlowContext ctx) {
+    public void leaveRoom(LeaveRoomReq req, FlowContext ctx) {
         long userId = ctx.getUserId();
 
         DoudizhuRoom room = roomService.getUserRoom(userId);
@@ -155,6 +155,6 @@ public class RoomAction {
         // 触发 OperationHandler 处理离开逻辑（移除玩家、广播等）
         room.operation(InternalOperation.QUIT_ROOM);
 
-        return CommonResp.success();
+        return;
     }
 }

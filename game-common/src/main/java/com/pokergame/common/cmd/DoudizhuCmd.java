@@ -18,7 +18,7 @@ package com.pokergame.common.cmd;
 public interface DoudizhuCmd {
 
     /** 主路由 */
-    int cmd = GameModuleCmd.DOUDIZHU_CMD;
+    int cmd = ModuleCmd.DOUDIZHU_CMD;
 
     // ========== 房间操作 (1-9) ==========
 

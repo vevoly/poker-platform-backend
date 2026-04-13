@@ -11,6 +11,7 @@ import com.iohao.game.bolt.broker.core.client.BrokerClientBuilder;
 import com.iohao.game.bolt.broker.core.common.IoGameGlobalConfig;
 import com.iohao.game.common.kit.NetworkKit;
 import com.iohao.game.external.core.netty.simple.NettySimpleHelper;
+import com.pokergame.common.enums.LogicServer;
 import com.pokergame.game.doudizhu.action.RoomAction;
 import com.pokergame.game.doudizhu.config.DoudizhuOperationConfigRunner;
 import lombok.extern.slf4j.Slf4j;
@@ -62,7 +63,7 @@ public class DoudizhuLogicServer extends AbstractBrokerClientStartup {
     @Override
     public BrokerClientBuilder createBrokerClientBuilder() {
         BrokerClientBuilder builder = BrokerClient.newBuilder();
-        builder.appName("斗地主逻辑服");
+        builder.appName(LogicServer.GAME_DOUDIZHU.getName());
         return builder;
     }
 

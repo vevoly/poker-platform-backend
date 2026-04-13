@@ -3,7 +3,7 @@ package com.pokergame.user.service.impl;
 import com.iohao.game.action.skeleton.core.exception.MsgException;
 import com.pokergame.common.enums.ChangeCurrencyType;
 import com.pokergame.common.enums.CurrencyType;
-import com.pokergame.common.model.user.LoginReq;
+import com.pokergame.common.model.auth.LoginReq;
 import com.pokergame.common.model.user.RegisterReq;
 import com.pokergame.user.UserServerApplication;
 import com.pokergame.user.entity.UserCurrencyEntity;

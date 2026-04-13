@@ -1,4 +1,4 @@
-package com.pokergame.common.model.user;
+package com.pokergame.common.model.auth;
 
 import com.baidu.bjf.remoting.protobuf.annotation.ProtobufClass;
 import lombok.Data;

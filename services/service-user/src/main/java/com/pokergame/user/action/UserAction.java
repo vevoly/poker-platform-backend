@@ -4,11 +4,12 @@ import cn.hutool.core.util.StrUtil;
 import com.iohao.game.action.skeleton.annotation.ActionController;
 import com.iohao.game.action.skeleton.annotation.ActionMethod;
 import com.iohao.game.action.skeleton.core.exception.MsgException;
+import com.iohao.game.action.skeleton.core.flow.FlowContext;
 import com.pokergame.common.cmd.UserCmd;
 import com.pokergame.common.exception.GameCode;
+import com.pokergame.common.model.auth.*;
 import com.pokergame.common.model.user.*;
 import com.pokergame.common.util.ValidationUtils;
-import com.pokergame.user.config.TokenService;
 import com.pokergame.user.converter.UserConverter;
 import com.pokergame.user.entity.UserEntity;
 import com.pokergame.user.service.UserService;
@@ -32,7 +33,6 @@ import java.time.ZoneId;
 public class UserAction {
 
     private final UserService userService;
-    private final TokenService tokenService;
     private final UserConverter userConverter;
 
     /**
@@ -67,57 +67,14 @@ public class UserAction {
     }
 
     /**
-     * 用户登录
-     */
-    @ActionMethod(UserCmd.LOGIN)
-    public LoginResp login(LoginReq req) throws MsgException {
-        log.info("RPC 登录请求: username={}, mobile={}, email={}",
-                req.getUsername(), req.getMobile(), req.getEmail());
-
-        // 参数校验
-        ValidationUtils.validate(req);
-
-        // 业务校验：至少提供一种账号标识
-        boolean hasUsername = StrUtil.isNotBlank(req.getUsername());
-        boolean hasMobile = StrUtil.isNotBlank(req.getMobile());
-        boolean hasEmail = StrUtil.isNotBlank(req.getEmail());
-        GameCode.PARAM_ERROR.assertTrueThrows(!hasUsername && !hasMobile && !hasEmail,
-                "用户名、手机号、邮箱至少填写一项");
-
-        UserEntity user = userService.login(req);
-        String token = tokenService.createToken(user.getId());
-
-        LoginResp resp = new LoginResp();
-        resp.setUserId(user.getId());
-        resp.setUserCode(user.getUserCode());
-        resp.setUsername(user.getUsername());
-        resp.setNickname(user.getNickname());
-        resp.setAvatar(user.getAvatar());
-        resp.setStatus(user.getStatus());
-        resp.setToken(token);
-        resp.setTokenExpireTime(System.currentTimeMillis() + 24 * 3600 * 1000L);
-        if (user.getLastLoginTime() != null) {
-            resp.setLastLoginTime(user.getLastLoginTime()
-                    .atZone(ZoneId.systemDefault())
-                    .toInstant()
-                    .toEpochMilli());
-        }
-
-        log.info("RPC 登录成功: userId={}", user.getId());
-        return resp;
-    }
-
-    /**
      * 获取用户信息
      */
     @ActionMethod(UserCmd.GET_USER_INFO)
-    public GetUserInfoResp getUserInfo(GetUserInfoReq req) throws MsgException {
+    public GetUserInfoResp getUserInfo(GetUserInfoReq req, FlowContext flowContext) throws MsgException {
+        req.setUserId(flowContext.getUserId());
         log.info("RPC 获取用户信息: userId={}", req.getUserId());
-
         ValidationUtils.validate(req);
-
         UserEntity user = userService.checkAndGetUser(req.getUserId());
-
         GetUserInfoResp resp = new GetUserInfoResp();
         resp.setUser(userConverter.toDTO(user));
 
@@ -125,18 +82,47 @@ public class UserAction {
     }
 
     /**
-     * 用户登出
+     * 验证用户凭证（供 Auth 服务调用）
+     * 仅验证用户名/手机/邮箱和密码，不生成 Token，不更新最后登录时间
      */
-    @ActionMethod(UserCmd.LOGOUT)
-    public LogoutResp logout(LogoutReq req) throws MsgException {
-        log.info("RPC 登出请求: userId={}", req.getUserId());
+    @ActionMethod(UserCmd.VERIFY_CREDENTIAL)
+    public VerifyUserCredentialResp verifyCredential(VerifyUserCredentialReq req) {
+        log.info("RPC 验证用户凭证: username={}, mobile={}, email={}",
+                req.getUsername(), req.getMobile(), req.getEmail());
 
-        ValidationUtils.validate(req);
+        // 构造 LoginReq 用于 Service 层调用
+        LoginReq loginReq = new LoginReq();
+        loginReq.setUsername(req.getUsername());
+        loginReq.setMobile(req.getMobile());
+        loginReq.setEmail(req.getEmail());
+        loginReq.setPassword(req.getPassword());
 
-        tokenService.invalidateToken(req.getToken());
+        UserEntity user = userService.verifyCredential(loginReq);
 
-        LogoutResp resp = new LogoutResp();
-        log.info("RPC 登出成功: userId={}", req.getUserId());
+        VerifyUserCredentialResp resp = new VerifyUserCredentialResp();
+        resp.setValid(true);
+        resp.setUserId(user.getId());
+        resp.setUserCode(user.getUserCode());
+        resp.setUsername(user.getUsername());
+        resp.setNickname(user.getNickname());
+        resp.setAvatar(user.getAvatar());
+        resp.setStatus(user.getStatus());
+
+        log.info("RPC 验证用户凭证成功: userId={}", user.getId());
         return resp;
     }
+
+    @ActionMethod(UserCmd.PROCESS_LOGIN_SUCCESS)
+    public void processLoginSuccess(ProcessLoginSuccessReq req) {
+        log.info("RPC 处理登录成功后续: userId={}", req.getUserId());
+        // 构造 LoginReq
+        LoginReq loginReq = new LoginReq();
+        loginReq.setLoginIp(req.getLoginIp());
+        loginReq.setLoginDeviceId(req.getLoginDeviceId());
+        loginReq.setLoginUserAgent(req.getLoginUserAgent());
+        loginReq.setLoginLatitude(req.getLoginLatitude());
+        loginReq.setLoginLongitude(req.getLoginLongitude());
+        userService.processLoginSuccess(req.getUserId(), loginReq);
+    }
+
 }

@@ -6,7 +6,7 @@ package com.pokergame.common.cmd;
 public interface CurrencyCmd {
 
     /** Token模块 - 主cmd */
-    int CMD = GameModuleCmd.CURRENCY_CMD;
+    int CMD = ModuleCmd.CURRENCY_CMD;
 
     /** 获取货币 */
     int GET_CURRENCY = 1;

@@ -1,0 +1,95 @@
+spring:
+  application:
+    name: service-auth
+
+# druid
+datasource:
+  type: com.alibaba.druid.pool.DruidDataSource
+  druid:
+    url: jdbc:mysql://localhost:3306/poker_game?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf-8
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+#    # 连接池配置
+#    initial-size: 5
+#    min-idle: 5
+#    max-active: 20
+#    max-wait: 60000
+#
+#    # 检测配置
+#    time-between-eviction-runs-millis: 60000
+#    min-evictable-idle-time-millis: 300000
+#    validation-query: SELECT 1
+#    test-while-idle: true
+#    test-on-borrow: false
+#    test-on-return: false
+#
+#    # 监控配置
+#    stat-view-servlet:
+#      enabled: true
+#      url-pattern: /druid/*
+#      login-username: admin
+#      login-password: admin
+#      reset-enable: false
+#
+#    web-stat-filter:
+#      enabled: true
+#      url-pattern: /*
+#      exclusions: '*.js,*.gif,*.jpg,*.png,*.css,*.ico,/druid/*'
+#
+#    filter:
+#      stat:
+#        enabled: true
+#        log-slow-sql: true
+#        slow-sql-millis: 1000
+#      wall:
+#        enabled: true
+#        config:
+#          delete-allow: false
+#          truncate-allow: false
+
+# Redis 额外配置
+redis:
+  prefix: poker
+  env: dev
+  token-expire-hours: 24
+  single-login: true
+  redisson:
+    address: redis://localhost:6379
+    #    password:
+    connection-pool-size: 64
+    connection-minimum-idle-size: 10
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.pokergame.user.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: assign_id
+      logic-delete-field: delFlag
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+jwt:
+  secret: your-secret-key-change-it-in-production
+  expire-hours: 24
+
+# Actuator 配置（K8s 健康检查）
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health,info,metrics
+#  endpoint:
+#    health:
+#      show-details: always
+
+logging:
+  level:
+    com.pokergame: DEBUG
+    com.iohao.game: INFO

@@ -7,7 +7,13 @@ import com.iohao.game.external.core.config.ExternalGlobalConfig;
 import com.iohao.game.external.core.config.ExternalJoinEnum;
 import com.iohao.game.external.core.netty.DefaultExternalServer;
 import com.iohao.game.external.core.netty.DefaultExternalServerBuilder;
+import com.iohao.game.external.core.netty.handler.ws.WebSocketVerifyHandler;
+import com.iohao.game.external.core.netty.micro.WebSocketMicroBootstrapFlow;
+import com.iohao.game.external.core.netty.simple.NettyRunOne;
+import com.pokergame.external.handler.MyWebSocketVerifyHandler;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
 
 /**
  * 游戏对外服 - 客户端 WebSocket 连接的唯一入口
@@ -29,18 +35,28 @@ public class GameExternalServer {
         log.info("对外服启动中...");
 
         // 游戏对外服 - 构建器
-        DefaultExternalServerBuilder builder = DefaultExternalServer.newBuilder(ExternalGlobalConfig.externalPort)
-                // websocket 方式连接；如果不设置，默认也是这个配置
-                .externalJoinEnum(ExternalJoinEnum.WEBSOCKET)
-                // Broker （游戏网关）的连接地址；如果不设置，默认也是这个配置
-                .brokerAddress(new BrokerAddress("127.0.0.1", IoGameGlobalConfig.brokerPort));
-
-        // 构建游戏对外服
-        ExternalServer externalServer = builder.build();
+        var externalServer = createExternalServer();
 
         // 启动对外服
-        externalServer.startup();
+        new NettyRunOne()
+                .setExternalServer(externalServer)
+                .startup();
 
         log.info("对外服启动完成！端口: {}", ExternalGlobalConfig.externalPort);
+    }
+
+    static ExternalServer createExternalServer() {
+        int port = ExternalGlobalConfig.externalPort;
+        DefaultExternalServerBuilder builder = DefaultExternalServer.newBuilder(port);
+
+        // 设置 MicroBootstrapFlow 类，并重写 createVerifyHandler 方法
+        builder.setting().setMicroBootstrapFlow(new WebSocketMicroBootstrapFlow() {
+            @Override
+            protected WebSocketVerifyHandler createVerifyHandler() {
+                return new MyWebSocketVerifyHandler();
+            }
+        });
+
+        return builder.build();
     }
 }

@@ -27,6 +27,7 @@
         <hutool.version>5.8.22</hutool.version>
         <mockito.version>5.14.2</mockito.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <crypto.version>6.3.4</crypto.version>
         <jwt.version>4.4.0</jwt.version>
         <jackson.version>2.15.3</jackson.version>
 
@@ -38,10 +39,13 @@
         <module>game-external</module>
         <module>game-broker</module>
         <module>game-test</module>
-        <module>services/service-user</module>
-        <module>games/game-logic-doudizhu</module>
         <module>starters/game-starter-redis</module>
         <module>starters/game-starter-mybatis</module>
+        <module>services/service-auth</module>
+        <module>services/service-user</module>
+        <module>games/game-logic-doudizhu</module>
+
+
     </modules>
 
     <dependencyManagement>
@@ -85,6 +89,11 @@
             <dependency>
                 <groupId>com.iohao.game</groupId>
                 <artifactId>bolt-broker-server</artifactId>
+                <version>${ioGame.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.iohao.game</groupId>
+                <artifactId>bolt-core</artifactId>
                 <version>${ioGame.version}</version>
             </dependency>
             <dependency>

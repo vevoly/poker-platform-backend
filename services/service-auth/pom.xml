@@ -6,19 +6,26 @@
     <parent>
         <groupId>com.pokergame</groupId>
         <artifactId>game-platform-backend</artifactId>
+        <relativePath>../../pom.xml</relativePath>
         <version>${revision}</version>
     </parent>
 
-    <artifactId>game-external</artifactId>
-    <version>${revision}</version>
-    <name>Game External</name>
-    <description>对外服</description>
+    <artifactId>service-auth</artifactId>
+    <name>Auth Service</name>
+    <description>认证服</description>
 
     <dependencies>
-
         <dependency>
             <groupId>com.pokergame</groupId>
             <artifactId>game-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.pokergame</groupId>
+            <artifactId>game-starter-redis</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.pokergame</groupId>
+            <artifactId>game-starter-mybatis</artifactId>
         </dependency>
 
         <dependency>
@@ -27,14 +34,18 @@
         </dependency>
 
         <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+            <version>${jwt.version}</version>
         </dependency>
+
+        <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+
     </dependencies>
 
 </project>

@@ -1,6 +1,7 @@
-package com.pokergame.common.model.user;
+package com.pokergame.common.model.auth;
 
 import com.baidu.bjf.remoting.protobuf.annotation.ProtobufClass;
+import com.pokergame.common.model.user.UserCurrencyDTO;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.ToString;
