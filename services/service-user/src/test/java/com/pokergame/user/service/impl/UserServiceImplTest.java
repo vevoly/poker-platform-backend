@@ -87,55 +87,6 @@ class UserServiceImplTest {
         assertThrows(MsgException.class, () -> userService.register(req));
     }
 
-    // ==================== 用户登录测试 ====================
-
-    @Test
-    @DisplayName("登录成功 - 使用用户名")
-    void login_Success_WithUsername() {
-        LoginReq req = new LoginReq()
-                .setUsername("testuser1")
-                .setPassword("123456")
-                .setLoginIp("192.168.1.100")
-                .setLoginDeviceId("device123");
-
-        UserEntity user = userService.login(req);
-        assertNotNull(user);
-        assertEquals(1001L, user.getId());
-
-        // 验证最后登录时间已更新
-        UserEntity updated = userService.getById(1001L);
-        assertNotNull(updated.getLastLoginTime());
-    }
-
-    @Test
-    @DisplayName("登录成功 - 使用手机号")
-    void login_Success_WithMobile() {
-        // 假设 testuser1 的手机号已存在（需提前准备数据）
-        LoginReq req = new LoginReq()
-                .setMobile("8613800138000")
-                .setPassword("123456");
-        UserEntity user = userService.login(req);
-        assertNotNull(user);
-    }
-
-    @Test
-    @DisplayName("登录失败 - 密码错误")
-    void login_WrongPassword() {
-        LoginReq req = new LoginReq()
-                .setUsername("testuser1")
-                .setPassword("wrong");
-        assertThrows(MsgException.class, () -> userService.login(req));
-    }
-
-    @Test
-    @DisplayName("登录失败 - 用户不存在")
-    void login_UserNotFound() {
-        LoginReq req = new LoginReq()
-                .setUsername("nonexistent")
-                .setPassword("123456");
-        assertThrows(MsgException.class, () -> userService.login(req));
-    }
-
     // ==================== 货币测试 ====================
 
     @Test

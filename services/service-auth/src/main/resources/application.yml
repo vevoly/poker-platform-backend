@@ -1,6 +1,7 @@
 spring:
   application:
     name: service-auth
+    port: 8081
 
 # druid
 datasource:

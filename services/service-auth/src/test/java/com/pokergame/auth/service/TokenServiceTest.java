@@ -1,7 +1,6 @@
-package com.pokergame.user.service.impl;
+package com.pokergame.auth.service;
 
-import com.pokergame.user.UserServerApplication;
-import com.pokergame.user.config.TokenService;
+import com.pokergame.auth.AuthServerApplication;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,7 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest(classes = UserServerApplication.class)
+@SpringBootTest(classes = AuthServerApplication.class)
 @ActiveProfiles("test")
 @DisplayName("TokenService 测试")
 class TokenServiceTest {
