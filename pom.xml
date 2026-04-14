@@ -24,6 +24,7 @@
         <junit-jupiter.version>5.10.5</junit-jupiter.version>
         <spring-boot.version>3.2.12</spring-boot.version>
         <spring-retry.version>2.0.4</spring-retry.version>
+        <multicache.version>1.0.3</multicache.version>
         <hutool.version>5.8.22</hutool.version>
         <mockito.version>5.14.2</mockito.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
@@ -44,8 +45,7 @@
         <module>services/service-auth</module>
         <module>services/service-user</module>
         <module>games/game-logic-doudizhu</module>
-
-
+        <module>gateways/gateway-hall</module>
     </modules>
 
     <dependencyManagement>
@@ -89,6 +89,11 @@
             <dependency>
                 <groupId>com.iohao.game</groupId>
                 <artifactId>bolt-broker-server</artifactId>
+                <version>${ioGame.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.iohao.game</groupId>
+                <artifactId>bolt-client</artifactId>
                 <version>${ioGame.version}</version>
             </dependency>
             <dependency>
@@ -161,8 +166,12 @@
                 <version>${spring-boot.version}</version>
                 <scope>test</scope>
             </dependency>
-
-
+            <!-- JMultiCache 多级缓存 -->
+            <dependency>
+                <groupId>io.github.vevoly</groupId>
+                <artifactId>j-multi-cache-spring-boot-starter</artifactId>
+                <version>${multicache.version}</version>
+            </dependency>
             <!-- Hutool 工具类 -->
             <dependency>
                 <groupId>cn.hutool</groupId>

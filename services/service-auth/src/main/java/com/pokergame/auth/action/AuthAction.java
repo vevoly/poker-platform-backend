@@ -1,11 +1,12 @@
 package com.pokergame.auth.action;
 
-import cn.hutool.core.util.StrUtil;
 import com.iohao.game.action.skeleton.annotation.ActionController;
 import com.iohao.game.action.skeleton.annotation.ActionMethod;
 import com.iohao.game.action.skeleton.core.CmdInfo;
 import com.iohao.game.action.skeleton.core.exception.MsgException;
+import com.iohao.game.bolt.broker.core.aware.BrokerClientAware;
 import com.iohao.game.bolt.broker.core.client.BrokerClient;
+import com.iohao.game.bolt.broker.core.client.BrokerClientHelper;
 import com.pokergame.auth.service.TokenService;
 import com.pokergame.common.cmd.AuthCmd;
 import com.pokergame.common.cmd.UserCmd;
@@ -16,20 +17,26 @@ import com.pokergame.common.model.auth.LoginResp;
 import com.pokergame.common.model.user.ProcessLoginSuccessReq;
 import com.pokergame.common.util.RpcInvokeUtil;
 import com.pokergame.common.util.ValidationUtils;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * 鉴权模块 RPC Action
  * 负责登录认证、Token 管理、登出等
  */
 @Slf4j
+@Component
 @RequiredArgsConstructor
 @ActionController(AuthCmd.CMD)
 public class AuthAction {
 
     private final TokenService tokenService;
-    private final BrokerClient brokerClient;
 
     /**
      * 用户名密码登录
@@ -46,9 +53,9 @@ public class AuthAction {
 
         // 1. 参数校验
         ValidationUtils.validate(req);
-        boolean hasUsername = StrUtil.isNotBlank(req.getUsername());
-        boolean hasMobile = StrUtil.isNotBlank(req.getMobile());
-        boolean hasEmail = StrUtil.isNotBlank(req.getEmail());
+        boolean hasUsername = StringUtils.isNotBlank(req.getUsername());
+        boolean hasMobile = StringUtils.isNotBlank(req.getMobile());
+        boolean hasEmail = StringUtils.isNotBlank(req.getEmail());
         GameCode.PARAM_ERROR.assertTrueThrows(!hasUsername && !hasMobile && !hasEmail,
                 "用户名、手机号、邮箱至少填写一项");
 
@@ -60,8 +67,8 @@ public class AuthAction {
         verifyReq.setPassword(req.getPassword());
 
         VerifyUserCredentialResp verifyResp = RpcInvokeUtil.invoke(
-                brokerClient,
-                CmdInfo.of(UserCmd.VERIFY_CREDENTIAL),
+                BrokerClientHelper.getBrokerClient(),
+                CmdInfo.of(UserCmd.CMD, UserCmd.VERIFY_CREDENTIAL),
                 verifyReq,
                 VerifyUserCredentialResp.class
         );
@@ -82,8 +89,8 @@ public class AuthAction {
         processReq.setLoginLatitude(req.getLoginLatitude());
         processReq.setLoginLongitude(req.getLoginLongitude());
 
-        RpcInvokeUtil.invokeAsync(brokerClient,
-                CmdInfo.of(UserCmd.PROCESS_LOGIN_SUCCESS),
+        RpcInvokeUtil.invokeAsync(BrokerClientHelper.getBrokerClient(),
+                CmdInfo.of(UserCmd.CMD, UserCmd.PROCESS_LOGIN_SUCCESS),
                 processReq);
 
         // 4. 构建响应
@@ -172,4 +179,5 @@ public class AuthAction {
         tokenService.kickUser(req.getUserId());
         return new KickUserResp();
     }
+
 }

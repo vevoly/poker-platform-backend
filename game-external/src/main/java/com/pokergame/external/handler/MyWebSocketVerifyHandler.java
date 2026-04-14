@@ -10,6 +10,8 @@ import com.iohao.game.external.core.netty.session.SocketUserSession;
 import com.iohao.game.external.core.session.UserSessionOption;
 import com.pokergame.common.cmd.ModuleCmd;
 import com.pokergame.common.cmd.WSCmd;
+import com.pokergame.common.constants.AuthConstants;
+import com.pokergame.common.constants.MetadataKeys;
 import com.pokergame.common.model.ws.WsAttachment;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +32,7 @@ public class MyWebSocketVerifyHandler extends WebSocketVerifyHandler implements 
 
     @Override
     public boolean verify(SocketUserSession userSession, Map<String, String> params) {
-        String token = params.get("token");
+        String token = params.get(AuthConstants.TOKEN_PARAM);
         if (token == null || token.isEmpty()) {
             log.warn("WebSocket 握手缺少 token 参数");
             return false;

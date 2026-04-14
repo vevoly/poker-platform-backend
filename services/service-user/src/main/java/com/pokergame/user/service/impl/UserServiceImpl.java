@@ -68,7 +68,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         }
 
         // 3. 生成 user_code
-        String userCode = "USC" + IdUtil.getSnowflakeNextIdStr().substring(0, 12);
+        String userCode = "USC" + IdUtil.getSnowflakeNextIdStr().substring(0, 6);
 
         // 4. 构建用户实体
         UserEntity user = new UserEntity();

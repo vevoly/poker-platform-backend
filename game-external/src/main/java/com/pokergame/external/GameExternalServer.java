@@ -37,19 +37,25 @@ public class GameExternalServer {
         // 游戏对外服 - 构建器
         var externalServer = createExternalServer();
 
-        // 启动对外服
-        new NettyRunOne()
-                .setExternalServer(externalServer)
-                .startup();
+        // 启动对外服 NettyRunOne 会自动启动 broker
+//        new NettyRunOne()
+//                .setExternalServer(externalServer)
+//                .startup();
+
+        // 直接启动 External Server（不通过 NettyRunOne）
+        externalServer.startup();
 
         log.info("对外服启动完成！端口: {}", ExternalGlobalConfig.externalPort);
     }
 
     static ExternalServer createExternalServer() {
         int port = ExternalGlobalConfig.externalPort;
-        DefaultExternalServerBuilder builder = DefaultExternalServer.newBuilder(port);
+        DefaultExternalServerBuilder builder = DefaultExternalServer.newBuilder(port)
+                // 连接到已启动的 Broker（默认 127.0.0.1:10200）
+                .brokerAddress(new BrokerAddress("127.0.0.1", IoGameGlobalConfig.brokerPort))
+                .externalJoinEnum(ExternalJoinEnum.WEBSOCKET);
 
-        // 设置 MicroBootstrapFlow 类，并重写 createVerifyHandler 方法
+        // 设置 WebSocket 验证处理器
         builder.setting().setMicroBootstrapFlow(new WebSocketMicroBootstrapFlow() {
             @Override
             protected WebSocketVerifyHandler createVerifyHandler() {

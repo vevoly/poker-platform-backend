@@ -12,9 +12,14 @@ import com.pokergame.common.model.user.*;
 import com.pokergame.common.util.ValidationUtils;
 import com.pokergame.user.converter.UserConverter;
 import com.pokergame.user.entity.UserEntity;
+import com.pokergame.user.mapper.UserMapper;
 import com.pokergame.user.service.UserService;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.validator.constraints.Normalized;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.ZoneId;
@@ -28,11 +33,12 @@ import java.time.ZoneId;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
+@AllArgsConstructor
 @ActionController(UserCmd.CMD)
 public class UserAction {
 
     private final UserService userService;
+
     private final UserConverter userConverter;
 
     /**

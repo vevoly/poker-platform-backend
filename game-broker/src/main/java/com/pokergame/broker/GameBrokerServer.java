@@ -36,7 +36,7 @@ public class GameBrokerServer {
         // 启动 游戏网关
         brokerServer.startup();
 
-        TimeUnit.SECONDS.sleep(1);
+//        TimeUnit.SECONDS.sleep(1);
     }
 
 }

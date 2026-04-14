@@ -40,10 +40,10 @@ import lombok.Getter;
 public enum GameCode implements MsgExceptionInfo {
 
     // ========== 成功 ==========
-    SUCCESS(0, "成功"),
+    SUCCESS(200, "成功"),
 
     // ========== 系统错误 (1xxxx) ==========
-    SYSTEM_ERROR(100001, "系统错误"),
+    SYSTEM_ERROR(100001, "系统繁忙，请稍后重试"),
     DB_ERROR(100002, "数据库错误"),
     NETWORK_ERROR(100003, "网络错误"),
     PARAM_ERROR(100004, "参数错误"),
@@ -52,10 +52,10 @@ public enum GameCode implements MsgExceptionInfo {
     OPERATION_TOO_FAST(100007, "操作过快，请稍后再试"),
 
     // ========== 用户/认证错误 (201xxx) ==========
-    USER_NOT_FOUND(201001, "用户不存在"),
+    USER_NOT_FOUND(201001, "用户名或密码错误"), // 用户不存在
     USER_DISABLED(201002, "用户已被禁用"),
     USERNAME_EXISTS(201003, "用户名已存在"),
-    PASSWORD_ERROR(201004, "用户名或密码错误"),
+    PASSWORD_ERROR(201004, "用户名或密码错误"), // 密码错误
     LOGIN_FAILED(201005, "登录失败"),
     NOT_LOGGED_IN(201006, "未登录，请先登录"),
 
@@ -177,6 +177,15 @@ public enum GameCode implements MsgExceptionInfo {
     @Override
     public int getCode() {
         return this.code;
+    }
+
+    public static GameCode fromCode(int code) {
+        for (GameCode gameCode : values()) {
+            if (gameCode.code == code) {
+                return gameCode;
+            }
+        }
+        return null;
     }
 
     public void assertTrueThrows(boolean condition) {

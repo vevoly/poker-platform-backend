@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.pokergame</groupId>
+        <artifactId>game-platform-backend</artifactId>
+        <relativePath>../../pom.xml</relativePath>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>gateway-hall</artifactId>
+    <name>Hall Service</name>
+    <description>大厅 HTTP 网关服务 - 统一入口</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.pokergame</groupId>
+            <artifactId>game-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.pokergame</groupId>
+            <artifactId>game-starter-redis</artifactId>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.pokergame</groupId>-->
+<!--            <artifactId>game-starter-mybatis</artifactId>-->
+<!--        </dependency>-->
+
+        <dependency>
+            <groupId>com.iohao.game</groupId>
+            <artifactId>bolt-client</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Web -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- JMultiCache 多级缓存 -->
+        <dependency>
+            <groupId>io.github.vevoly</groupId>
+            <artifactId>j-multi-cache-spring-boot-starter</artifactId>
+        </dependency>
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- 测试 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <!-- 排除 JUnit 4 -->
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>

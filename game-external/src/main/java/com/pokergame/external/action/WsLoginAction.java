@@ -39,7 +39,7 @@ public class WsLoginAction implements BrokerClientAware {
         VerifyTokenResp resp;
         try {
             resp = RpcInvokeUtil.invoke(brokerClient,
-                    CmdInfo.of(AuthCmd.VERIFY_TOKEN),
+                    CmdInfo.of(AuthCmd.CMD, AuthCmd.VERIFY_TOKEN),
                     req,
                     VerifyTokenResp.class);
         } catch (Exception e) {

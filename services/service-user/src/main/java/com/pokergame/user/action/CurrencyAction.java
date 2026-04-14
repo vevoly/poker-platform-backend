@@ -15,8 +15,10 @@ import com.pokergame.user.entity.CurrencyChangeLogEntity;
 import com.pokergame.user.entity.UserCurrencyEntity;
 import com.pokergame.user.mapper.CurrencyChangeLogMapper;
 import com.pokergame.user.service.CurrencyService;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;
@@ -30,14 +32,17 @@ import java.util.List;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 @ActionController(CurrencyCmd.CMD)
 public class CurrencyAction {
 
-    private final CurrencyService currencyService;
-    private final CurrencyConverter currencyConverter;
-    private final CurrencyChangeLogMapper currencyChangeLogMapper;
-    private final CurrencyChangeLogConverter currencyChangeLogConverter;
+    @Autowired
+    private CurrencyService currencyService;
+    @Autowired
+    private CurrencyConverter currencyConverter;
+    @Autowired
+    private CurrencyChangeLogMapper currencyChangeLogMapper;
+    @Autowired
+    private CurrencyChangeLogConverter currencyChangeLogConverter;
 
     /**
      * 查询用户货币

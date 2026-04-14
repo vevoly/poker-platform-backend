@@ -38,7 +38,15 @@ public enum LogicServer {
     SERVICE_RANK("rank-logic", "排行榜逻辑服", "rank"),
 
     /** 聊天逻辑服 */
-    SERVICE_CHAT("chat-logic", "聊天逻辑服", "chat");
+    SERVICE_CHAT("chat-logic", "聊天逻辑服", "chat"),
+
+    /** 网关-大厅 */
+    GATEWAY_HALL("gateway-hall", "网关-大厅", "hall"),
+
+    /** 网关-管理 */
+    GATEWAY_ADMIN("gateway-admin", "网关-管理", "admin"),
+
+    ;
 
     /** 逻辑服ID（基础标识，不含实例编号） */
     private final String id;

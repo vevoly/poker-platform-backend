@@ -1,0 +1,46 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway-hall
+
+# 大厅服务配置
+hall:
+  auth:
+    white-list:
+      - /api/user/register
+      - /api/user/login
+      - /actuator/health
+      - /actuator/info
+
+# 多级缓存配置
+j-multi-cache:
+  enabled: true
+  defaults:
+    redis-ttl: 1h
+    local-ttl: 5m
+    local-max-size: 1000
+    empty-cache-ttl: 10s
+    empty-cache-value: "[NULL]"
+  configs:
+    PERSONAL_CENTER:
+      namespace: "poker:test:hall:cache:personal:center"
+      entity-class: "com.pokergame.gateway.hall.dto.PersonalCenterResp"
+      key-field: "#userId"
+      redis-ttl: 2m
+      local-ttl: 30s
+
+# Redis 配置（用于多级缓存，如果启用）
+redis:
+  prefix: poker
+  env: dev
+  redisson:
+    address: redis://localhost:6379
+    connection-pool-size: 64
+    connection-minimum-idle-size: 10
+
+# 日志配置
+logging:
+  level:
+    com.pokergame.gateway.hall: DEBUG

@@ -38,6 +38,7 @@ public class DruidConfig {
      * 访问地址：http://localhost:8080/druid/index.html
      */
     @Bean
+    @ConditionalOnMissingBean(name = "statViewServlet")
     public ServletRegistrationBean<StatViewServlet> statViewServlet() {
         ServletRegistrationBean<StatViewServlet> servlet = new ServletRegistrationBean<>();
         servlet.setServlet(new StatViewServlet());
@@ -55,6 +56,7 @@ public class DruidConfig {
      * Druid 监控过滤器
      */
     @Bean
+    @ConditionalOnMissingBean(name = "statFilter")
     public FilterRegistrationBean<WebStatFilter> statFilter() {
         FilterRegistrationBean<WebStatFilter> filter = new FilterRegistrationBean<>();
         filter.setFilter(new WebStatFilter());
