@@ -32,7 +32,7 @@ public class DoudizhuBroadcastKit {
      * @param room 房间
      */
     public static void broadcastReady(DoudizhuPlayer player, boolean ready, DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.cmd, DoudizhuCmd.READY_BROADCAST);
+        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.READY_BROADCAST);
 
         // 构建广播数据
         ReadyBroadcastData data = new ReadyBroadcastData();
@@ -51,7 +51,7 @@ public class DoudizhuBroadcastKit {
      * @param room 房间
      */
     public static void broadcastEnterRoom(DoudizhuPlayer player, DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.cmd, DoudizhuCmd.ENTER_ROOM_BROADCAST);
+        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.ENTER_ROOM_BROADCAST);
 
         EnterRoomBroadcastData data = new EnterRoomBroadcastData();
         data.setUserId(player.getUserId());
@@ -70,7 +70,7 @@ public class DoudizhuBroadcastKit {
      * @param room 房间
      */
     public static void broadcastQuitRoom(long userId, DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.cmd, DoudizhuCmd.QUIT_ROOM_BROADCAST);
+        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.QUIT_ROOM_BROADCAST);
 
         QuitRoomBroadcastData data = new QuitRoomBroadcastData();
         data.setUserId(userId);
@@ -86,7 +86,7 @@ public class DoudizhuBroadcastKit {
      * @param room 房间
      */
     public static void broadcastGameStart(DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.cmd, DoudizhuCmd.GAME_START_BROADCAST);
+        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.GAME_START_BROADCAST);
 
         GameStartBroadcastData data = new GameStartBroadcastData();
         data.setRoomId(room.getRoomId());
@@ -104,7 +104,7 @@ public class DoudizhuBroadcastKit {
      * @param room 房间
      */
     public static void broadcastPlayCard(long playerId, List<Card> cards, DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.cmd, DoudizhuCmd.PLAY_CARD_BROADCAST);
+        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.PLAY_CARD_BROADCAST);
 
         PlayCardBroadcastData data = new PlayCardBroadcastData();
         data.setUserId(playerId);
@@ -119,7 +119,7 @@ public class DoudizhuBroadcastKit {
      * 广播过牌
      */
     public static void broadcastPass(long userId, DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.cmd, DoudizhuCmd.PASS_BROADCAST);
+        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.PASS_BROADCAST);
 
         PassBroadcastData data = new PassBroadcastData();
         data.setUserId(userId);
@@ -132,7 +132,7 @@ public class DoudizhuBroadcastKit {
      * 广播抢地主
      */
     public static void broadcastGrabLandlord(long userId, int multiple, DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.cmd, DoudizhuCmd.GRAB_LANDLORD_BROADCAST);
+        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.GRAB_LANDLORD_BROADCAST);
 
         GrabLandlordBroadcastData data = new GrabLandlordBroadcastData();
         data.setUserId(userId);
@@ -146,7 +146,7 @@ public class DoudizhuBroadcastKit {
      * 广播不抢地主
      */
     public static void broadcastNotGrab(long userId, DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.cmd, DoudizhuCmd.NOT_GRAB_LANDLORD_BROADCAST);
+        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.NOT_GRAB_LANDLORD_BROADCAST);
 
         NotGrabBroadcastData data = new NotGrabBroadcastData();
         data.setUserId(userId);
@@ -163,7 +163,7 @@ public class DoudizhuBroadcastKit {
      * @param room 房间
      */
     public static void broadcastBiddingTurn(long playerId, int round, DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.cmd, DoudizhuCmd.BIDDING_TURN_BROADCAST);
+        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.BIDDING_TURN_BROADCAST);
 
         BiddingTurnData data = new BiddingTurnData();
         data.setPlayerId(playerId);

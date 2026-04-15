@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author poker-platform
  */
 @Slf4j
-@ActionController(DoudizhuCmd.cmd)
+@ActionController(DoudizhuCmd.CMD)
 public class GameAction {
 
     private final DoudizhuRoomService roomService = DoudizhuRoomService.me();

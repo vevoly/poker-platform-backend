@@ -33,15 +33,12 @@ import java.util.List;
 public class GameExternalServer {
 
     public static void main(String[] args) {
-        log.info("对外服启动中...");
-
         // 启动 WS 逻辑服 ，注意这里的顺序不能换，不然Action会注册不上
         BrokerClientApplication.start(new GameExternalStartup());
         // 启动游戏对外服
         ExternalServer externalServer = createExternalServer();
         externalServer.startup();
 
-        log.info("对外服启动完成！端口: {}", ExternalGlobalConfig.externalPort);
     }
 
     static ExternalServer createExternalServer() {

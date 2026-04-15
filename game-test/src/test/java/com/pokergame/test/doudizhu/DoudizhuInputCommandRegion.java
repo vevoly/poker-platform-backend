@@ -1,46 +1,57 @@
-package com.pokergame.test.game.doudizhu;
+package com.pokergame.test.doudizhu;
 
+import com.iohao.game.action.skeleton.core.CmdInfo;
 import com.iohao.game.external.client.AbstractInputCommandRegion;
 import com.iohao.game.external.client.kit.ScannerKit;
 import com.pokergame.common.card.Card;
 import com.pokergame.common.cmd.DoudizhuCmd;
+import com.pokergame.common.cmd.WSCmd;
 import com.pokergame.common.model.game.doudizhu.GrabLandlordReq;
 import com.pokergame.common.model.game.doudizhu.NotGrabLandlordReq;
 import com.pokergame.common.model.player.PlayerInfo;
 import com.pokergame.common.model.room.*;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * 斗地主测试区域
- *
- * 用于模拟斗地主客户端请求
- *
- * @author poker-platform
+ * 斗地主测试区域（含 WebSocket 登录命令）
  */
 @Slf4j
 public class DoudizhuInputCommandRegion extends AbstractInputCommandRegion {
 
-    // 保存当前房间ID
     private static String currentRoomId = null;
 
     @Override
     public void initInputCommand() {
-        // 设置主路由
-        inputCommandCreate.cmd = DoudizhuCmd.CMD;
+        // 1. 注册 WebSocket 登录的响应监听
+        ofListen(result -> {
+            log.info("WebSocket 登录成功，可以开始斗地主游戏！");
+        }, CmdInfo.of(WSCmd.CMD, WSCmd.LOGIN), "WebSocket登录");
+
+        // 2. 延迟 1 秒后自动发送登录请求（确保 WebSocket 连接已建立）
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        scheduler.schedule(() -> {
+            log.info("自动发送 WebSocket 登录请求...");
+            ofRequestCommand(CmdInfo.of(WSCmd.CMD, WSCmd.LOGIN)).execute();
+        }, 1, TimeUnit.SECONDS);
+        scheduler.shutdown();
+
+        // 3. 设置斗地主默认主路由
+        this.inputCommandCreate.cmd = DoudizhuCmd.CMD;
 
         // ==================== 房间操作 ====================
-
         // 创建房间
         ofCommand(DoudizhuCmd.CREATE_ROOM)
                 .setTitle("创建房间")
                 .setRequestData(() -> {
                     ScannerKit.log(() -> log.info("请输入最大玩家数(2-3):"));
                     int maxPlayers = ScannerKit.nextInt(3);
-
                     ScannerKit.log(() -> log.info("请输入玩家昵称:"));
                     String nickname = ScannerKit.nextLine("测试玩家");
 
@@ -62,7 +73,6 @@ public class DoudizhuInputCommandRegion extends AbstractInputCommandRegion {
                 .setRequestData(() -> {
                     ScannerKit.log(() -> log.info("请输入房间ID:"));
                     long roomId = ScannerKit.nextLong();
-
                     ScannerKit.log(() -> log.info("请输入玩家昵称:"));
                     String nickname = ScannerKit.nextLine("测试玩家");
 
@@ -98,14 +108,11 @@ public class DoudizhuInputCommandRegion extends AbstractInputCommandRegion {
                 });
 
         // ==================== 游戏操作 ====================
-
         // 准备
         ofCommand(DoudizhuCmd.READY)
                 .setTitle("准备")
-                .setRequestData(() -> null)
-                .callback(result -> {
-                    log.info("准备成功");
-                });
+                .setRequestData(Object::new)
+                .callback(result -> log.info("准备成功"));
 
         // 抢地主
         ofCommand(DoudizhuCmd.GRAB_LANDLORD)
@@ -113,7 +120,6 @@ public class DoudizhuInputCommandRegion extends AbstractInputCommandRegion {
                 .setRequestData(() -> {
                     ScannerKit.log(() -> log.info("请输入倍数(1/2/3):"));
                     int multiple = ScannerKit.nextInt(3);
-
                     GrabLandlordReq req = new GrabLandlordReq();
                     if (currentRoomId != null) {
                         req.setRoomId(Long.parseLong(currentRoomId));
@@ -121,9 +127,7 @@ public class DoudizhuInputCommandRegion extends AbstractInputCommandRegion {
                     req.setMultiple(multiple);
                     return req;
                 })
-                .callback(result -> {
-                    log.info("抢地主成功");
-                });
+                .callback(result -> log.info("抢地主成功"));
 
         // 不抢地主
         ofCommand(DoudizhuCmd.NOT_GRAB)
@@ -135,9 +139,7 @@ public class DoudizhuInputCommandRegion extends AbstractInputCommandRegion {
                     }
                     return req;
                 })
-                .callback(result -> {
-                    log.info("不抢地主");
-                });
+                .callback(result -> log.info("不抢地主"));
 
         // 出牌
         ofCommand(DoudizhuCmd.PLAY_CARD)
@@ -146,12 +148,10 @@ public class DoudizhuInputCommandRegion extends AbstractInputCommandRegion {
                     ScannerKit.log(() -> log.info("请输入牌ID(用逗号分隔，如: 0,1,2):"));
                     String cardInput = ScannerKit.nextLine("0");
                     String[] cardIds = cardInput.split(",");
-
                     List<Card> cards = new ArrayList<>();
                     for (String id : cardIds) {
                         cards.add(Card.of(Integer.parseInt(id.trim())));
                     }
-
                     PlayCardReq req = new PlayCardReq();
                     if (currentRoomId != null) {
                         req.setRoomId(Long.parseLong(currentRoomId));
@@ -159,9 +159,7 @@ public class DoudizhuInputCommandRegion extends AbstractInputCommandRegion {
                     req.setCards(cards);
                     return req;
                 })
-                .callback(result -> {
-                    log.info("出牌成功");
-                });
+                .callback(result -> log.info("出牌成功"));
 
         // 过牌
         ofCommand(DoudizhuCmd.PASS)
@@ -173,8 +171,6 @@ public class DoudizhuInputCommandRegion extends AbstractInputCommandRegion {
                     }
                     return req;
                 })
-                .callback(result -> {
-                    log.info("过牌成功");
-                });
+                .callback(result -> log.info("过牌成功"));
     }
 }

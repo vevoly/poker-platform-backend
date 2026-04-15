@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  * @author poker-platform
  */
 @Slf4j
-@ActionController(DoudizhuCmd.cmd)
+@ActionController(DoudizhuCmd.CMD)
 public class RoomAction {
 
     private final DoudizhuRoomService roomService = DoudizhuRoomService.me();

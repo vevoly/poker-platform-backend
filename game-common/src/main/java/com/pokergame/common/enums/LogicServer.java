@@ -22,6 +22,9 @@ public enum LogicServer {
     /** 德州逻辑服 */
     GAME_TEXAS("texas-logic", "德州逻辑服", "texas"),
 
+    /** WebSocket逻辑服 */
+    SERVICE_WS("ws-logic", "websocket逻辑服", "ws"),
+
     /** 认证逻辑服 */
     SERVICE_AUTH("auth-logic", "认证逻辑服", "auth"),
 
