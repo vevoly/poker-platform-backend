@@ -1,5 +1,6 @@
 package com.pokergame.external;
 
+import com.iohao.game.bolt.broker.client.BrokerClientApplication;
 import com.iohao.game.bolt.broker.core.client.BrokerAddress;
 import com.iohao.game.bolt.broker.core.common.IoGameGlobalConfig;
 import com.iohao.game.external.core.ExternalServer;
@@ -34,15 +35,10 @@ public class GameExternalServer {
     public static void main(String[] args) {
         log.info("对外服启动中...");
 
-        // 游戏对外服 - 构建器
-        var externalServer = createExternalServer();
-
-        // 启动对外服 NettyRunOne 会自动启动 broker
-//        new NettyRunOne()
-//                .setExternalServer(externalServer)
-//                .startup();
-
-        // 直接启动 External Server（不通过 NettyRunOne）
+        // 启动 WS 逻辑服 ，注意这里的顺序不能换，不然Action会注册不上
+        BrokerClientApplication.start(new GameExternalStartup());
+        // 启动游戏对外服
+        ExternalServer externalServer = createExternalServer();
         externalServer.startup();
 
         log.info("对外服启动完成！端口: {}", ExternalGlobalConfig.externalPort);

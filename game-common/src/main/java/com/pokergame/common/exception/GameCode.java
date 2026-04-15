@@ -58,6 +58,7 @@ public enum GameCode implements MsgExceptionInfo {
     PASSWORD_ERROR(201004, "用户名或密码错误"), // 密码错误
     LOGIN_FAILED(201005, "登录失败"),
     NOT_LOGGED_IN(201006, "未登录，请先登录"),
+    ACCOUNT_ONLINE(201007, "用户已登录，请勿重复登录"),
 
     TOKEN_INVALID(201010, "Token无效"),
     TOKEN_EXPIRED(201011, "Token已过期"),

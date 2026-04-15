@@ -30,7 +30,7 @@ jwt:
 #    health:
 #      show-details: always
 
-logging:
-  level:
-    com.pokergame: DEBUG
-    com.iohao.game: INFO
+#logging:
+#  level:
+#    com.pokergame: DEBUG
+#    com.iohao.game: INFO
