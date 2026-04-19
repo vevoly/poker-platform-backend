@@ -5,6 +5,8 @@ import com.iohao.game.action.skeleton.annotation.ActionMethod;
 import com.iohao.game.action.skeleton.core.exception.MsgException;
 import com.iohao.game.action.skeleton.core.flow.FlowContext;
 import com.pokergame.common.cmd.DoudizhuCmd;
+import com.pokergame.common.enums.GameActionType;
+import com.pokergame.common.enums.GameEventType;
 import com.pokergame.common.game.GameType;
 
 import com.pokergame.common.model.game.doudizhu.GrabLandlordReq;
@@ -23,6 +25,7 @@ import com.pokergame.game.doudizhu.room.DoudizhuPlayer;
 import com.pokergame.game.doudizhu.room.DoudizhuRoom;
 import com.pokergame.game.doudizhu.room.DoudizhuRoomService;
 import com.pokergame.game.doudizhu.rule.DoudizhuRuleChecker;
+import com.pokergame.starter.spring.annotation.PublishGameEvent;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -72,6 +75,12 @@ public class GameAction {
      * @param ctx FlowContext
      */
     @ActionMethod(DoudizhuCmd.GRAB_LANDLORD)
+    @PublishGameEvent(
+            eventType = GameEventType.DOUDIZHU_GRAB_LANDLORD,
+            gameType = GameType.DOUDIZHU,
+            roomIdSpel = "#req.roomId",
+            multipleSpel = "#req.multiple"
+    )
     public void grabLandlord(GrabLandlordReq req, FlowContext ctx) {
         long userId = ctx.getUserId();
 
@@ -121,6 +130,13 @@ public class GameAction {
      * @param ctx FlowContext
      */
     @ActionMethod(DoudizhuCmd.PLAY_CARD)
+    @PublishGameEvent(
+            eventType = GameEventType.DOUDIZHU_PLAY_CARD,
+            gameType = GameType.DOUDIZHU,
+            roomIdSpel = "#req.roomId",
+            actionType = GameActionType.PLAY,
+            cardsSpel = "#req.cards"
+    )
     public void playCard(PlayCardReq req, FlowContext ctx) {
         long userId = ctx.getUserId();
 
@@ -184,6 +200,11 @@ public class GameAction {
      * @param ctx FlowContext
      */
     @ActionMethod(DoudizhuCmd.PASS)
+    @PublishGameEvent(
+            eventType = GameEventType.PASS,
+            gameType = GameType.DOUDIZHU,
+            roomIdSpel = "#req.roomId"
+    )
     public void pass(PassReq req, FlowContext ctx) {
         long userId = ctx.getUserId();
 

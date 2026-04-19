@@ -37,13 +37,6 @@ public interface BaseConverter<E, M> {
 
     /**
      * 更新 Entity（从 Model）
-     */
-//    @Mapping(target = "createTime", ignore = true)
-//    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-//    void updateEntity(M model, @MappingTarget E entity);
-
-    /**
-     * 更新 Entity（从 Model）
      * 默认空实现，子类可按需覆盖
      */
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)

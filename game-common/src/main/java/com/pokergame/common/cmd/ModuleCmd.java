@@ -41,6 +41,9 @@ public interface ModuleCmd {
     /** 管理模块 */
     int ADMIN_CMD = 9;
 
+    /** 机器人模块 */
+    int ROBOT_CMD = 20;
+
 
 
     // ========== 游戏模块 (101-200) ==========

@@ -5,6 +5,8 @@ import com.pokergame.common.model.auth.LoginReq;
 import com.pokergame.common.model.user.RegisterReq;
 import com.pokergame.user.entity.UserEntity;
 
+import java.util.List;
+
 /**
  * 用户服务接口
  *
@@ -67,4 +69,10 @@ public interface UserService extends IService<UserEntity> {
      * @param loginReq 登录请求（包含IP、设备等）
      */
     void processLoginSuccess(Long userId, LoginReq loginReq);
+
+    /**
+     * 获取机器人账户列表
+     * @return 机器人账户列表
+     */
+    List<UserEntity> getRobotAccounts();
 }

@@ -11,6 +11,7 @@ import com.iohao.game.bolt.broker.core.client.BrokerClient;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -100,7 +101,7 @@ public class RpcInvokeUtil {
      * @throws MsgException RPC 调用失败或业务错误时抛出
      */
     public static <Req, Resp> Resp invoke(BrokerClientContext ctx, CmdInfo cmdInfo, Req req, Long userId, Class<Resp> respClass) {
-        RequestMessage requestMessage = BarMessageKit.createRequestMessage(cmdInfo, req);
+        RequestMessage requestMessage = Objects.isNull(req) ? BarMessageKit.createRequestMessage(cmdInfo) : BarMessageKit.createRequestMessage(cmdInfo, req);
         if (userId != null) {
             requestMessage.getHeadMetadata().setUserId(userId);
         }
@@ -124,7 +125,7 @@ public class RpcInvokeUtil {
     public static void invokeAsync(BrokerClient brokerClient, CmdInfo cmdInfo, Object req) {
         CompletableFuture.runAsync(() -> {
             try {
-                RequestMessage requestMessage = BarMessageKit.createRequestMessage(cmdInfo, req);
+                RequestMessage requestMessage = Objects.isNull(req) ? BarMessageKit.createRequestMessage(cmdInfo) : BarMessageKit.createRequestMessage(cmdInfo, req);
                 brokerClient.getInvokeModuleContext().invokeModuleVoidMessage(requestMessage);
             } catch (Exception e) {
                 log.warn("异步 RPC 调用失败: cmd={}, subCmd={}, error={}",
@@ -143,7 +144,7 @@ public class RpcInvokeUtil {
     public static void invokeAsync(BrokerClientContext ctx, CmdInfo cmdInfo, Object req) {
         CompletableFuture.runAsync(() -> {
             try {
-                RequestMessage requestMessage = BarMessageKit.createRequestMessage(cmdInfo, req);
+                RequestMessage requestMessage = Objects.isNull(req) ? BarMessageKit.createRequestMessage(cmdInfo) : BarMessageKit.createRequestMessage(cmdInfo, req);
                 ctx.getInvokeModuleContext().invokeModuleVoidMessage(requestMessage);
             } catch (Exception e) {
                 log.warn("异步 RPC 调用失败: cmd={}, subCmd={}, error={}",

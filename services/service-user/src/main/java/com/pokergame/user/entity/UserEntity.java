@@ -116,4 +116,22 @@ public class UserEntity extends BaseEntity {
      */
     @TableField(value = "extra", typeHandler = JacksonTypeHandler.class)
     private String extra;
+
+    /**
+     * 是否机器人（0-否，1-是）
+     */
+    @TableField("is_robot")
+    private Integer isRobot;
+
+    /**
+     * 机器人难度（1-简单，2-普通，3-困难）
+     */
+    @TableField("robot_difficulty")
+    private int robotDifficulty;
+
+    /**
+     * 是否启用机器人（0-否，1-是）
+     */
+    @TableField("robot_enabled")
+    private Integer robotEnabled;
 }

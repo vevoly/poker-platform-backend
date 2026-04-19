@@ -1,4 +1,4 @@
-package com.pokergame.common.event;
+package com.pokergame.common.enums;
 
 /**
  * 游戏事件类型枚举
@@ -17,6 +17,10 @@ public enum GameEventType {
     PLAYER_JOIN(1002, "玩家加入"),
     PLAYER_LEAVE(1003, "玩家离开"),
     PLAYER_READY(1004, "玩家准备"),
+    TURN_CHANGE(1005, "回合切换"),
+    CARDS_DEALT(1006, "发牌"),
+    PASS(1007, "过牌"),
+
 
     // ========== 斗地主事件 ==========
     DOUDIZHU_PLAY_CARD(2000, "出牌"),

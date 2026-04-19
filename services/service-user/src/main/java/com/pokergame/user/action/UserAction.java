@@ -5,24 +5,26 @@ import com.iohao.game.action.skeleton.annotation.ActionController;
 import com.iohao.game.action.skeleton.annotation.ActionMethod;
 import com.iohao.game.action.skeleton.core.exception.MsgException;
 import com.iohao.game.action.skeleton.core.flow.FlowContext;
+import com.pokergame.common.cmd.RobotCmd;
 import com.pokergame.common.cmd.UserCmd;
 import com.pokergame.common.exception.GameCode;
-import com.pokergame.common.model.auth.*;
+import com.pokergame.common.model.auth.LoginReq;
+import com.pokergame.common.model.auth.VerifyUserCredentialReq;
+import com.pokergame.common.model.auth.VerifyUserCredentialResp;
+import com.pokergame.common.model.robot.GetRobotAccountsReq;
+import com.pokergame.common.model.robot.GetRobotAccountsResp;
+import com.pokergame.common.model.robot.RobotAccountDTO;
 import com.pokergame.common.model.user.*;
 import com.pokergame.common.util.ValidationUtils;
+import com.pokergame.user.converter.RobotConverter;
 import com.pokergame.user.converter.UserConverter;
 import com.pokergame.user.entity.UserEntity;
-import com.pokergame.user.mapper.UserMapper;
 import com.pokergame.user.service.UserService;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.validator.constraints.Normalized;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.time.ZoneId;
+import java.util.List;
 
 /**
  * 用户 Action
@@ -38,8 +40,8 @@ import java.time.ZoneId;
 public class UserAction {
 
     private final UserService userService;
-
     private final UserConverter userConverter;
+    private final RobotConverter robotConverter;
 
     /**
      * 用户注册
@@ -129,6 +131,13 @@ public class UserAction {
         loginReq.setLoginLatitude(req.getLoginLatitude());
         loginReq.setLoginLongitude(req.getLoginLongitude());
         userService.processLoginSuccess(req.getUserId(), loginReq);
+    }
+
+    @ActionMethod(UserCmd.GET_ROBOT_ACCOUNTS)
+    public GetRobotAccountsResp getRobotAccounts(GetRobotAccountsReq req) {
+        List<UserEntity> robots = userService.getRobotAccounts();
+        List<RobotAccountDTO> robotAccountDTOList = robotConverter.toDTOList(robots);
+        return new GetRobotAccountsResp().setAccounts(robotAccountDTOList);
     }
 
 }

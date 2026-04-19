@@ -3,7 +3,6 @@ package com.pokergame.user.service.impl;
 import com.iohao.game.action.skeleton.core.exception.MsgException;
 import com.pokergame.common.enums.ChangeCurrencyType;
 import com.pokergame.common.enums.CurrencyType;
-import com.pokergame.common.model.auth.LoginReq;
 import com.pokergame.common.model.user.RegisterReq;
 import com.pokergame.user.UserServerApplication;
 import com.pokergame.user.entity.UserCurrencyEntity;
@@ -19,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(classes = UserServerApplication.class)
@@ -231,6 +231,14 @@ class UserServiceImplTest {
         // 验证用户数量没有变化
         long afterCount = userService.count();
         assertEquals(beforeCount, afterCount);
+    }
+
+    @Test
+    @DisplayName("获取全部可用机器人")
+    void getRobotAccounts_Success() {
+        // Given
+        List<UserEntity> before = userService.getRobotAccounts();
+        assertEquals(1, before.size());
     }
 
 }

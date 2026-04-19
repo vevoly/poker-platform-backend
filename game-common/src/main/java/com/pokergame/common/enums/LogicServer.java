@@ -25,6 +25,9 @@ public enum LogicServer {
     /** WebSocket逻辑服 */
     SERVICE_WS("ws-logic", "websocket逻辑服", "ws"),
 
+    /** 机器人逻辑服 */
+    SERVICE_ROBOT("robot-logic", "机器人逻辑服", "robot"),
+
     /** 认证逻辑服 */
     SERVICE_AUTH("auth-logic", "认证逻辑服", "auth"),
 

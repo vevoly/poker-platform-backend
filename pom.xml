@@ -42,8 +42,10 @@
         <module>game-test</module>
         <module>starters/game-starter-redis</module>
         <module>starters/game-starter-mybatis</module>
+        <module>starters/game-starter-spring</module>
         <module>services/service-auth</module>
         <module>services/service-user</module>
+        <module>services/service-robot</module>
         <module>games/game-logic-doudizhu</module>
         <module>gateways/gateway-hall</module>
     </modules>
@@ -58,6 +60,12 @@
             <dependency>
                 <groupId>com.pokergame</groupId>
                 <artifactId>game-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.pokergame</groupId>
+                <artifactId>game-starter-spring</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>

@@ -2,7 +2,6 @@ package com.pokergame.user;
 
 import com.iohao.game.action.skeleton.ext.spring.ActionFactoryBeanForSpring;
 import com.iohao.game.bolt.broker.client.BrokerClientApplication;
-import com.pokergame.starter.mybatis.annotation.EnableMybatisPlus;
 import com.pokergame.starter.redis.annotation.EnableRedis;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,8 +9,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
-
-import java.util.Arrays;
 
 /**
  * 用户服务启动类
@@ -21,7 +18,6 @@ import java.util.Arrays;
 @EnableAsync
 @EnableRetry
 @EnableRedis
-@EnableMybatisPlus
 @SpringBootApplication(scanBasePackages = {"com.pokergame.user", "com.pokergame.common"})
 public class UserServerApplication {
 

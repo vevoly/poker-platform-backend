@@ -2,6 +2,7 @@ package com.pokergame.user.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.pokergame.common.enums.ChangeCurrencyType;
 import com.pokergame.common.enums.CurrencyType;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 /**
@@ -195,6 +197,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserEntity> impleme
         logEntity.setLoginResult(1);
         logEntity.setToken(null); // Token 由 Auth 服务管理，这里不记录
         userLoginLogService.recordLoginLog(logEntity);
+    }
+
+    @Override
+    public List<UserEntity> getRobotAccounts() {
+        return userMapper.selectList(Wrappers.<UserEntity>lambdaQuery()
+                .eq(UserEntity::getIsRobot, 1)
+                .eq(UserEntity::getRobotEnabled, 1));
     }
 
 }

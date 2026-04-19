@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.pokergame</groupId>
+        <artifactId>game-platform-backend</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>game-starter-spring</artifactId>
+    <name>game-starter-spring</name>
+    <description>Spring 相关公共模块：工具类、注解、AOP 切面，供各服务复用</description>
+
+    <dependencies>
+        <!-- 内部模块依赖 -->
+        <dependency>
+            <groupId>com.pokergame</groupId>
+            <artifactId>game-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.pokergame</groupId>
+            <artifactId>game-core</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Starter -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <!-- SpEL 依赖（Spring 自带，无需额外引入） -->
+
+        <!-- Lombok（可选，用于简化代码） -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+    </dependencies>
+
+</project>

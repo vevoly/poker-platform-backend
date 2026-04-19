@@ -1,5 +1,6 @@
 package com.pokergame.common.event;
 
+import com.pokergame.common.enums.GameEventType;
 import com.pokergame.common.game.GameType;
 import lombok.Data;
 

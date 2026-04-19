@@ -6,10 +6,12 @@ import com.iohao.game.external.client.kit.ScannerKit;
 import com.pokergame.common.card.Card;
 import com.pokergame.common.cmd.DoudizhuCmd;
 import com.pokergame.common.cmd.WSCmd;
+import com.pokergame.common.model.game.StartGameReq;
 import com.pokergame.common.model.game.doudizhu.GrabLandlordReq;
 import com.pokergame.common.model.game.doudizhu.NotGrabLandlordReq;
 import com.pokergame.common.model.player.PlayerInfo;
 import com.pokergame.common.model.room.*;
+import com.pokergame.common.model.ws.WsAttachment;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -26,26 +28,30 @@ import java.util.stream.Collectors;
 public class DoudizhuInputCommandRegion extends AbstractInputCommandRegion {
 
     private static String currentRoomId = null;
+    private final String token;
+
+    public DoudizhuInputCommandRegion(String token) {
+        this.token = token;
+        // 设置斗地主命令的主路由
+        this.inputCommandCreate.cmd = DoudizhuCmd.CMD;
+    }
 
     @Override
     public void initInputCommand() {
-        // 1. 注册 WebSocket 登录的响应监听
-        ofListen(result -> {
-            log.info("WebSocket 登录成功，可以开始斗地主游戏！");
-        }, CmdInfo.of(WSCmd.CMD, WSCmd.LOGIN), "WebSocket登录");
+        // ========== 1. WebSocket 登录（必须最先执行） ==========
+        // 自动发送 WebSocket 登录请求（使用 .execute() 立即执行）
+        ofCommand(WSCmd.LOGIN)
+                .setTitle("WebSocket登录")
+                .setRequestData(() -> {
+                    WsAttachment attachment = new WsAttachment();
+                    attachment.setToken(token);
+                    return attachment;
+                })
+                .callback(result -> {
+                    log.info("WebSocket 登录成功，可以开始斗地主游戏！");
+                });
 
-        // 2. 延迟 1 秒后自动发送登录请求（确保 WebSocket 连接已建立）
-        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        scheduler.schedule(() -> {
-            log.info("自动发送 WebSocket 登录请求...");
-            ofRequestCommand(CmdInfo.of(WSCmd.CMD, WSCmd.LOGIN)).execute();
-        }, 1, TimeUnit.SECONDS);
-        scheduler.shutdown();
-
-        // 3. 设置斗地主默认主路由
-        this.inputCommandCreate.cmd = DoudizhuCmd.CMD;
-
-        // ==================== 房间操作 ====================
+        // ========== 2. 斗地主房间操作 ==========
         // 创建房间
         ofCommand(DoudizhuCmd.CREATE_ROOM)
                 .setTitle("创建房间")
@@ -54,7 +60,6 @@ public class DoudizhuInputCommandRegion extends AbstractInputCommandRegion {
                     int maxPlayers = ScannerKit.nextInt(3);
                     ScannerKit.log(() -> log.info("请输入玩家昵称:"));
                     String nickname = ScannerKit.nextLine("测试玩家");
-
                     CreateRoomReq req = new CreateRoomReq();
                     req.setMaxPlayers(maxPlayers);
                     req.setPlayerName(nickname);
@@ -75,7 +80,6 @@ public class DoudizhuInputCommandRegion extends AbstractInputCommandRegion {
                     long roomId = ScannerKit.nextLong();
                     ScannerKit.log(() -> log.info("请输入玩家昵称:"));
                     String nickname = ScannerKit.nextLine("测试玩家");
-
                     JoinRoomReq req = new JoinRoomReq();
                     req.setRoomId(roomId);
                     req.setPlayerName(nickname);
@@ -107,12 +111,24 @@ public class DoudizhuInputCommandRegion extends AbstractInputCommandRegion {
                     currentRoomId = null;
                 });
 
-        // ==================== 游戏操作 ====================
+        // ========== 3. 斗地主游戏操作 ==========
         // 准备
         ofCommand(DoudizhuCmd.READY)
                 .setTitle("准备")
-                .setRequestData(Object::new)
+                .setRequestData(() -> null)
                 .callback(result -> log.info("准备成功"));
+
+        // 开始游戏（房主使用）
+        ofCommand(DoudizhuCmd.START_GAME)
+                .setTitle("开始游戏")
+                .setRequestData(() -> {
+                    StartGameReq req = new StartGameReq();
+                    if (currentRoomId != null) {
+                        req.setRoomId(Long.parseLong(currentRoomId));
+                    }
+                    return req;
+                })
+                .callback(result -> log.info("游戏开始"));
 
         // 抢地主
         ofCommand(DoudizhuCmd.GRAB_LANDLORD)
