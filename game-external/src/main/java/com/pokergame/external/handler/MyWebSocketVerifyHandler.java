@@ -8,10 +8,9 @@ import com.iohao.game.bolt.broker.core.client.BrokerClient;
 import com.iohao.game.external.core.netty.handler.ws.WebSocketVerifyHandler;
 import com.iohao.game.external.core.netty.session.SocketUserSession;
 import com.iohao.game.external.core.session.UserSessionOption;
-import com.pokergame.common.cmd.ModuleCmd;
+import com.pokergame.common.cmd.main.MainCmd;
 import com.pokergame.common.cmd.WSCmd;
 import com.pokergame.common.constants.AuthConstants;
-import com.pokergame.common.constants.MetadataKeys;
 import com.pokergame.common.model.ws.WsAttachment;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +44,7 @@ public class MyWebSocketVerifyHandler extends WebSocketVerifyHandler implements 
         userSession.option(UserSessionOption.attachment, encode);
 
         // 发送登录请求到业务 Action（异步，不等待响应）
-        CmdInfo cmdInfo = CmdInfo.of(ModuleCmd.WS_CMD, WSCmd.LOGIN);
+        CmdInfo cmdInfo = CmdInfo.of(MainCmd.WS_CMD, WSCmd.LOGIN);
         RequestMessage requestMessage = userSession.ofRequestMessage(cmdInfo);
         try {
             brokerClient.oneway(requestMessage);

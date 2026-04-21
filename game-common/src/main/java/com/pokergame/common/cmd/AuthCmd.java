@@ -1,8 +1,10 @@
 package com.pokergame.common.cmd;
 
+import com.pokergame.common.cmd.main.MainCmd;
+
 public interface AuthCmd {
 
-    int CMD = ModuleCmd.AUTH_CMD;
+    int CMD = MainCmd.AUTH_CMD;
 
     // ========== 登录认证 (1-9) ==========
     /** 用户名密码登录 */

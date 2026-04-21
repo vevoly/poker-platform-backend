@@ -25,6 +25,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.stereotype.Component;
 
 /**
@@ -133,6 +134,7 @@ public class AuthAction {
         ValidationUtils.validate(req);
 
         Long userId = tokenService.verifyToken(req.getToken());
+
         VerifyTokenResp resp = new VerifyTokenResp();
         resp.setUserId(userId);
         resp.setValid(userId != null);

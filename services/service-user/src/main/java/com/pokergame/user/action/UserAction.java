@@ -90,6 +90,25 @@ public class UserAction {
     }
 
     /**
+     * 获取用户基础信息（供 Auth 服务调用）
+     * @param req
+     * @return
+     */
+    @ActionMethod(UserCmd.GET_USER_BASIC_INFO)
+    public GetUserBasicInfoResp getUserBasicInfo(GetUserBasicInfoReq req) {
+        // 调用时尚未建立正式的用户绑定。所以直接通过 req.getUserId() 查询。
+        UserEntity user = userService.getById(req.getUserId());
+        if (user == null) {
+            throw new MsgException(GameCode.USER_NOT_FOUND);
+        }
+        GetUserBasicInfoResp resp = new GetUserBasicInfoResp();
+        resp.setUserId(user.getId());
+        resp.setNickname(user.getNickname());
+        resp.setAvatar(user.getAvatar());
+        return resp;
+    }
+
+    /**
      * 验证用户凭证（供 Auth 服务调用）
      * 仅验证用户名/手机/邮箱和密码，不生成 Token，不更新最后登录时间
      */

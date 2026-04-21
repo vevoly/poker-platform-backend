@@ -1,12 +1,12 @@
 package com.pokergame.game.doudizhu.turn;
 
 import com.pokergame.core.base.BaseTurnManager;
+import com.pokergame.game.doudizhu.bidding.BiddingManager;
 import com.pokergame.game.doudizhu.enums.InternalOperation;
 import com.pokergame.game.doudizhu.room.DoudizhuRoom;
-import com.pokergame.game.doudizhu.state.DoudizhuGameState;
+import com.pokergame.game.doudizhu.state.DoudizhuGameStateManager;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * 斗地主回合管理器
@@ -17,6 +17,10 @@ import java.util.concurrent.ScheduledExecutorService;
  */
 @Slf4j
 public class DoudizhuTurnManager extends BaseTurnManager<DoudizhuRoom> {
+
+    /** 叫地主管理器引用（用于超时回调） */
+    @Setter
+    private BiddingManager biddingManager;
 
     public DoudizhuTurnManager(DoudizhuRoom room) {
         super(room);

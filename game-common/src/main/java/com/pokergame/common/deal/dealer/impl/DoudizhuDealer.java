@@ -28,6 +28,9 @@ public class DoudizhuDealer extends BaseDealer {
     private static final int BASE_HAND_SIZE = 17;      // 基础手牌数（不含底牌）
     private static final int LANDLORD_EXTRA_CARDS = 3;  // 地主额外底牌数
 
+    /** 斗地主地牌 */
+    private List<Card> landlordCards;
+
     public DoudizhuDealer(int playerCount) {
         super(GameType.DOUDIZHU, playerCount);
     }
@@ -71,14 +74,21 @@ public class DoudizhuDealer extends BaseDealer {
 
     @Override
     protected List<Card> extractLandlordCards(CardDeck deck, int landlordIndex) {
-        List<Card> extraCards = new ArrayList<>();
+        landlordCards = new ArrayList<>();
         for (int i = 0; i < LANDLORD_EXTRA_CARDS; i++) {
             Card card = deck.draw();
             if (card != null) {
-                extraCards.add(card);
+                landlordCards.add(card);
             }
         }
-        log.debug("地主{}底牌: {}", landlordIndex, extraCards);
-        return extraCards;
+        log.debug("地主{}底牌: {}", landlordIndex, landlordCards);
+        return landlordCards;
+    }
+
+    /**
+     * 获取地主底牌
+     */
+    public List<Card> getLandlordCards() {
+        return landlordCards != null ? landlordCards : new ArrayList<>();
     }
 }

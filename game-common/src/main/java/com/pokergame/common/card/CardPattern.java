@@ -1,6 +1,7 @@
 package com.pokergame.common.card;
 
 import com.pokergame.common.game.GameType;
+import com.pokergame.common.pattern.PatternResult;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

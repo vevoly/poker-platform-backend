@@ -1,5 +1,7 @@
 package com.pokergame.common.cmd;
 
+import com.pokergame.common.cmd.main.MainCmd;
+
 /**
  * 斗地主路由定义
  *
@@ -18,78 +20,43 @@ package com.pokergame.common.cmd;
 public interface DoudizhuCmd {
 
     /** 主路由 */
-    int CMD = ModuleCmd.DOUDIZHU_CMD;
-
-    // ========== 房间操作 (1-9) ==========
-
-    /** 创建房间 */
-    int CREATE_ROOM = 1;
-
-    /** 加入房间 */
-    int JOIN_ROOM = 2;
-
-    /** 离开房间 */
-    int LEAVE_ROOM = 3;
-
-    /** 获取房间列表 */
-    int ROOM_LIST = 4;
-
-    /** 获取房间详情 */
-    int ROOM_DETAIL = 5;
+    int CMD = MainCmd.DOUDIZHU_CMD;
 
     // ========== 游戏操作 (10-19) ==========
 
-    /** 玩家准备 */
-    int READY = 10;
-
-    /** 开始游戏 */
-    int START_GAME = 11;
-
     /** 抢地主 */
-    int GRAB_LANDLORD = 12;
+    int GRAB_LANDLORD = 1;
 
     /** 不抢地主 */
-    int NOT_GRAB = 13;
+    int NOT_GRAB = 2;
 
     /** 出牌 */
-    int PLAY_CARD = 14;
+    int PLAY_CARD = 3;
 
     /** 过牌 */
-    int PASS = 15;
+    int PASS = 4;
 
     // ========== 广播路由 (100-199) ==========
 
-    /** 准备状态广播 */
-    int READY_BROADCAST = 100;
-
-    /** 玩家进入房间广播 */
-    int ENTER_ROOM_BROADCAST = 101;
-
-    /** 玩家离开房间广播 */
-    int QUIT_ROOM_BROADCAST = 102;
-
-    /** 游戏开始广播 */
-    int GAME_START_BROADCAST = 103;
-
     /** 叫地主回合广播 */
-    int BIDDING_TURN_BROADCAST = 104;
+    int BIDDING_TURN_BROADCAST = 100;
 
     /** 发牌广播 */
-    int DEAL_CARDS_BROADCAST = 105;
+    int DEAL_CARDS_BROADCAST = 101;
 
     /** 叫地主广播 */
-    int GRAB_LANDLORD_BROADCAST = 106;
+    int GRAB_LANDLORD_BROADCAST = 102;
 
     /** 不叫地主广播 */
-    int NOT_GRAB_LANDLORD_BROADCAST = 107;
+    int NOT_GRAB_LANDLORD_BROADCAST = 103;
 
     /** 出牌广播 */
-    int PLAY_CARD_BROADCAST = 108;
+    int PLAY_CARD_BROADCAST = 104;
 
     /** 过牌广播 */
-    int PASS_BROADCAST = 109;
+    int PASS_BROADCAST = 105;
 
     /** 游戏结束广播 */
-    int GAME_END_BROADCAST = 110;
+    int GAME_END_BROADCAST = 106;
 
 }

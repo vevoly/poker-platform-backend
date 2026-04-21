@@ -30,7 +30,7 @@ public final class ReadyOperationHandler implements OperationHandler {
     @Override
     public boolean processVerify(PlayerOperationContext context) {
         DoudizhuRoom room = context.getRoom();
-        DoudizhuGameStatus gameStatus = room.getGameStatus();
+        DoudizhuGameStatus gameStatus = room.getDoudizhuGameStatus();
 
         // 游戏未开始时才能准备/取消准备
         boolean canReady = gameStatus == DoudizhuGameStatus.WAITING || gameStatus == DoudizhuGameStatus.READY;
@@ -53,7 +53,7 @@ public final class ReadyOperationHandler implements OperationHandler {
         DoudizhuBroadcastKit.broadcastReady(player, ready, room);
 
         // 如果所有玩家都准备好了，自动开始游戏
-        if (ready && room.isAllReady() && room.getGameStatus() == DoudizhuGameStatus.READY) {
+        if (ready && room.isAllReady() && room.getDoudizhuGameStatus() == DoudizhuGameStatus.READY) {
             log.info("房间 {} 所有玩家已准备，自动开始游戏", room.getRoomId());
             room.operation(InternalOperation.START_GAME);
         }

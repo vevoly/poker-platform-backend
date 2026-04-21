@@ -41,6 +41,6 @@ public final class QuitRoomOperationHandler implements OperationHandler {
         }
 
         // 广播玩家离开房间
-        DoudizhuBroadcastKit.broadcastQuitRoom(userId, room);
+        DoudizhuBroadcastKit.broadcastLeaveRoom(userId, room);
     }
 }

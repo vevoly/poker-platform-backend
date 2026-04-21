@@ -49,7 +49,7 @@ public final class StartGameOperationHandler implements OperationHandler {
         GameCode.PLAYER_NOT_READY.assertTrueThrows(!room.isAllReady());
 
         // 4. 游戏状态必须是等待或准备中
-        DoudizhuGameStatus status = room.getGameStatus();
+        DoudizhuGameStatus status = room.getDoudizhuGameStatus();
         boolean canStart = status == DoudizhuGameStatus.WAITING ||
                 status == DoudizhuGameStatus.READY;
         GameCode.ILLEGAL_OPERATION.assertTrueThrows(!canStart);
@@ -83,11 +83,11 @@ public final class StartGameOperationHandler implements OperationHandler {
         }
 
         // ==================== 4. 初始化叫地主管理器 ====================
-        BiddingManager biddingManager = new BiddingManager(room, playerIds);
+        BiddingManager biddingManager = new BiddingManager(room);
         room.setBiddingManager(biddingManager);
 
         // ==================== 5. 更新游戏状态 ====================
-        room.changeGameStatus(DoudizhuGameStatus.BIDDING);
+        room.updateGameStatus(DoudizhuGameStatus.BIDDING);
 
         // ==================== 6. 开始叫地主流程 ====================
         biddingManager.start();

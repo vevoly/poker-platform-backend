@@ -10,13 +10,11 @@ import com.iohao.game.bolt.broker.core.client.BrokerClient;
 import com.iohao.game.bolt.broker.core.client.BrokerClientBuilder;
 import com.iohao.game.bolt.broker.core.common.IoGameGlobalConfig;
 import com.iohao.game.common.kit.NetworkKit;
-import com.iohao.game.external.core.netty.simple.NettySimpleHelper;
 import com.pokergame.common.enums.LogicServer;
+import com.pokergame.common.context.MyFlowContext;
 import com.pokergame.game.doudizhu.action.RoomAction;
 import com.pokergame.game.doudizhu.config.DoudizhuOperationConfigRunner;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
 
 /**
  * 斗地主逻辑服启动类
@@ -56,6 +54,9 @@ public class DoudizhuLogicServer extends AbstractBrokerClientStartup {
 
         // 4. 注册操作配置 Runner
         builder.addRunner(new DoudizhuOperationConfigRunner());
+
+        // 5. 设置自定义 FlowContext
+        builder.setFlowContextFactory(MyFlowContext::new);
 
         return builder.build();
     }

@@ -1,8 +1,12 @@
 package com.pokergame.game.doudizhu.broadcast;
 
-import com.iohao.game.action.skeleton.core.CmdInfo;
+import com.baidu.bjf.remoting.protobuf.annotation.ProtobufClass;
 import com.pokergame.common.card.Card;
 import com.pokergame.common.cmd.DoudizhuCmd;
+import com.pokergame.common.cmd.RoomCmd;
+import com.pokergame.common.game.GameType;
+import com.pokergame.common.model.broadcast.BaseBroadcastData;
+import com.pokergame.core.base.BaseBroadcastKit;
 import com.pokergame.game.doudizhu.room.DoudizhuPlayer;
 import com.pokergame.game.doudizhu.room.DoudizhuRoom;
 import lombok.Data;
@@ -11,182 +15,141 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.List;
 
 /**
- * 斗地主广播工具类
- *
- * 封装各种广播消息的发送逻辑
- *
- * 广播流程：
- * 1. 构建 CmdInfo（包含主路由和广播子路由）
- * 2. 通过房间的 CommunicationAggregationContext 发送广播
- *
- * @author poker-platform
+ * 斗地主广播工具，封装斗地主特有的广播消息。
+ * 复用 BaseBroadcastKit 发送广播，广播数据都继承 BaseBroadcastData 并自动设置 gameType。
  */
 @Slf4j
-public class DoudizhuBroadcastKit {
+public final class DoudizhuBroadcastKit {
+
+    private DoudizhuBroadcastKit() {}
+
+    private static final int GAME_TYPE = GameType.DOUDIZHU.getCode();
 
     /**
      * 广播玩家准备状态
-     *
-     * @param player 玩家
-     * @param ready 是否准备
-     * @param room 房间
      */
     public static void broadcastReady(DoudizhuPlayer player, boolean ready, DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.READY_BROADCAST);
-
-        // 构建广播数据
         ReadyBroadcastData data = new ReadyBroadcastData();
+        data.setGameType(GAME_TYPE);
         data.setUserId(player.getUserId());
         data.setReady(ready);
         data.setNickname(player.getNickname());
 
-        room.getAggregationContext().broadcast(cmdInfo, data);
-        log.debug("广播准备状态: userId={}, ready={}", player.getUserId(), ready);
+        BaseBroadcastKit.broadcastToRoom(room, RoomCmd.CMD, RoomCmd.READY_BROADCAST, data);
     }
 
     /**
      * 广播玩家进入房间
-     *
-     * @param player 玩家
-     * @param room 房间
      */
     public static void broadcastEnterRoom(DoudizhuPlayer player, DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.ENTER_ROOM_BROADCAST);
-
         EnterRoomBroadcastData data = new EnterRoomBroadcastData();
+        data.setGameType(GAME_TYPE);
         data.setUserId(player.getUserId());
         data.setNickname(player.getNickname());
         data.setPlayerCount(room.getPlayerCount());
         data.setMaxPlayers(room.getMaxPlayers());
 
-        room.getAggregationContext().broadcast(cmdInfo, data);
-        log.debug("广播玩家进入房间: userId={}, roomId={}", player.getUserId(), room.getRoomId());
+        BaseBroadcastKit.broadcastToRoom(room, RoomCmd.CMD, RoomCmd.ENTER_ROOM_BROADCAST, data);
     }
 
     /**
      * 广播玩家离开房间
-     *
-     * @param userId 玩家ID
-     * @param room 房间
      */
-    public static void broadcastQuitRoom(long userId, DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.QUIT_ROOM_BROADCAST);
-
+    public static void broadcastLeaveRoom(long userId, DoudizhuRoom room) {
         QuitRoomBroadcastData data = new QuitRoomBroadcastData();
+        data.setGameType(GAME_TYPE);
         data.setUserId(userId);
         data.setPlayerCount(room.getPlayerCount());
 
-        room.getAggregationContext().broadcast(cmdInfo, data);
-        log.debug("广播玩家离开房间: userId={}", userId);
+        BaseBroadcastKit.broadcastToRoom(room, RoomCmd.CMD, RoomCmd.QUIT_ROOM_BROADCAST, data);
     }
 
     /**
      * 广播游戏开始
-     *
-     * @param room 房间
      */
     public static void broadcastGameStart(DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.GAME_START_BROADCAST);
-
         GameStartBroadcastData data = new GameStartBroadcastData();
+        data.setGameType(GAME_TYPE);
         data.setRoomId(room.getRoomId());
+        // 注意：players 列表中的每个 DoudizhuPlayer 可能需要转换为不含敏感信息的 DTO，这里简单传递，建议使用浅拷贝或只传必要字段
         data.setPlayers(room.getAllDoudizhuPlayers());
 
-        room.getAggregationContext().broadcast(cmdInfo, data);
-        log.info("广播游戏开始: roomId={}", room.getRoomId());
+        BaseBroadcastKit.broadcastToRoom(room, RoomCmd.CMD, RoomCmd.GAME_START_BROADCAST, data);
     }
 
     /**
      * 广播出牌
-     *
-     * @param playerId 出牌玩家
-     * @param cards 出的牌
-     * @param room 房间
      */
     public static void broadcastPlayCard(long playerId, List<Card> cards, DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.PLAY_CARD_BROADCAST);
-
         PlayCardBroadcastData data = new PlayCardBroadcastData();
+        data.setGameType(GAME_TYPE);
         data.setUserId(playerId);
         data.setCards(cards);
         data.setRemainingCards(room.getDoudizhuPlayer(playerId).getCardCount());
 
-        room.getAggregationContext().broadcast(cmdInfo, data);
-        log.debug("广播出牌: userId={}, cards={}", playerId, cards);
+        BaseBroadcastKit.broadcastToRoom(room, DoudizhuCmd.CMD, DoudizhuCmd.PLAY_CARD_BROADCAST, data);
     }
 
     /**
      * 广播过牌
      */
     public static void broadcastPass(long userId, DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.PASS_BROADCAST);
-
         PassBroadcastData data = new PassBroadcastData();
+        data.setGameType(GAME_TYPE);
         data.setUserId(userId);
 
-        room.getAggregationContext().broadcast(cmdInfo, data);
-        log.debug("广播过牌: userId={}", userId);
+        BaseBroadcastKit.broadcastToRoom(room, DoudizhuCmd.CMD, DoudizhuCmd.PASS_BROADCAST, data);
     }
 
     /**
      * 广播抢地主
      */
     public static void broadcastGrabLandlord(long userId, int multiple, DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.GRAB_LANDLORD_BROADCAST);
-
         GrabLandlordBroadcastData data = new GrabLandlordBroadcastData();
+        data.setGameType(GAME_TYPE);
         data.setUserId(userId);
         data.setMultiple(multiple);
 
-        room.getAggregationContext().broadcast(cmdInfo, data);
-        log.debug("广播抢地主: userId={}, multiple={}", userId, multiple);
+        BaseBroadcastKit.broadcastToRoom(room, DoudizhuCmd.CMD, DoudizhuCmd.GRAB_LANDLORD_BROADCAST, data);
     }
 
     /**
      * 广播不抢地主
      */
     public static void broadcastNotGrab(long userId, DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.NOT_GRAB_LANDLORD_BROADCAST);
-
         NotGrabBroadcastData data = new NotGrabBroadcastData();
+        data.setGameType(GAME_TYPE);
         data.setUserId(userId);
 
-        room.getAggregationContext().broadcast(cmdInfo, data);
-        log.debug("广播不抢地主: userId={}", userId);
+        BaseBroadcastKit.broadcastToRoom(room, DoudizhuCmd.CMD, DoudizhuCmd.NOT_GRAB_LANDLORD_BROADCAST, data);
     }
 
     /**
      * 广播叫地主回合
-     *
-     * @param playerId 当前玩家ID
-     * @param round 第几轮
-     * @param room 房间
      */
     public static void broadcastBiddingTurn(long playerId, int round, DoudizhuRoom room) {
-        CmdInfo cmdInfo = CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.BIDDING_TURN_BROADCAST);
-
         BiddingTurnData data = new BiddingTurnData();
+        data.setGameType(GAME_TYPE);
         data.setPlayerId(playerId);
         data.setRound(round);
         data.setTimeoutSeconds(15);
 
-        room.getAggregationContext().broadcast(cmdInfo, data);
-        log.debug("广播叫地主回合: playerId={}, round={}", playerId, round);
+        BaseBroadcastKit.broadcastToRoom(room, DoudizhuCmd.CMD, DoudizhuCmd.BIDDING_TURN_BROADCAST, data);
     }
 
-
-
-    // ==================== 广播数据类 ====================
+    // ==================== 广播数据类（都继承 BaseBroadcastData） ====================
 
     @Data
-    public static class ReadyBroadcastData {
+    @ProtobufClass
+    public static class ReadyBroadcastData extends BaseBroadcastData {
         private long userId;
         private boolean ready;
         private String nickname;
     }
 
     @Data
-    public static class EnterRoomBroadcastData {
+    @ProtobufClass
+    public static class EnterRoomBroadcastData extends BaseBroadcastData {
         private long userId;
         private String nickname;
         private int playerCount;
@@ -194,42 +157,49 @@ public class DoudizhuBroadcastKit {
     }
 
     @Data
-    public static class QuitRoomBroadcastData {
+    @ProtobufClass
+    public static class QuitRoomBroadcastData extends BaseBroadcastData {
         private long userId;
         private int playerCount;
     }
 
     @Data
-    public static class GameStartBroadcastData {
+    @ProtobufClass
+    public static class GameStartBroadcastData extends BaseBroadcastData {
         private long roomId;
         private List<DoudizhuPlayer> players;
     }
 
     @Data
-    public static class PlayCardBroadcastData {
+    @ProtobufClass
+    public static class PlayCardBroadcastData extends BaseBroadcastData {
         private long userId;
         private List<Card> cards;
         private int remainingCards;
     }
 
     @Data
-    public static class PassBroadcastData {
+    @ProtobufClass
+    public static class PassBroadcastData extends BaseBroadcastData {
         private long userId;
     }
 
     @Data
-    public static class GrabLandlordBroadcastData {
+    @ProtobufClass
+    public static class GrabLandlordBroadcastData extends BaseBroadcastData {
         private long userId;
         private int multiple;
     }
 
     @Data
-    public static class NotGrabBroadcastData {
+    @ProtobufClass
+    public static class NotGrabBroadcastData extends BaseBroadcastData {
         private long userId;
     }
 
     @Data
-    public static class BiddingTurnData {
+    @ProtobufClass
+    public static class BiddingTurnData extends BaseBroadcastData {
         private long playerId;
         private int round;
         private int timeoutSeconds;

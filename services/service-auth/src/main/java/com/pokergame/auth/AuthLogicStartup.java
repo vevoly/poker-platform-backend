@@ -11,6 +11,7 @@ import com.iohao.game.bolt.broker.core.client.BrokerClient;
 import com.iohao.game.bolt.broker.core.client.BrokerClientBuilder;
 import com.iohao.game.bolt.broker.core.common.IoGameGlobalConfig;
 import com.pokergame.auth.action.AuthAction;
+import com.pokergame.common.context.MyFlowContext;
 import com.pokergame.common.enums.LogicServer;
 import org.springframework.context.annotation.Bean;
 
@@ -26,6 +27,7 @@ public class AuthLogicStartup extends AbstractBrokerClientStartup {
     public BarSkeleton createBarSkeleton() {
         // 业务框架构建器
         BarSkeletonBuilder builder = LogicServerCreateKit.createBuilder(AuthAction.class);
+        builder.setFlowContextFactory(MyFlowContext::new);
         // 添加调试插件
         builder.addInOut(new DebugInOut());
         

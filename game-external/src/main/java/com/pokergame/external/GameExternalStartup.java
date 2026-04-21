@@ -7,6 +7,7 @@ import com.iohao.game.action.skeleton.kit.LogicServerCreateKit;
 import com.iohao.game.bolt.broker.client.AbstractBrokerClientStartup;
 import com.iohao.game.bolt.broker.core.client.BrokerClient;
 import com.iohao.game.bolt.broker.core.client.BrokerClientBuilder;
+import com.pokergame.common.context.MyFlowContext;
 import com.pokergame.common.enums.LogicServer;
 import com.pokergame.external.action.WsLoginAction;
 
@@ -15,7 +16,7 @@ public class GameExternalStartup extends AbstractBrokerClientStartup {
     public BarSkeleton createBarSkeleton() {
         // 业务框架构建器 配置
         BarSkeletonBuilder builder = LogicServerCreateKit.createBuilder(WsLoginAction.class);
-
+        builder.setFlowContextFactory(MyFlowContext::new);
         // 添加控制台输出插件
         builder.addInOut(new DebugInOut());
         return builder.build();

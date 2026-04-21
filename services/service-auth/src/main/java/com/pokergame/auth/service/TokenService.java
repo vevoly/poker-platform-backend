@@ -4,6 +4,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.pokergame.common.constants.MetadataKeys;
 import com.pokergame.common.exception.GameCode;
 import com.pokergame.starter.redis.enums.RedisKey;
 import com.pokergame.starter.redis.util.RedisKeyUtil;
@@ -100,7 +101,7 @@ public class TokenService {
         try {
             // 1. 验证 JWT 签名和过期时间
             DecodedJWT decodedJWT = getJwtVerifier().verify(token);
-            Long userId = decodedJWT.getClaim("userId").asLong();
+            Long userId = decodedJWT.getClaim(MetadataKeys.USER_ID).asLong();
 
             if (userId == null) {
                 return null;
@@ -157,7 +158,7 @@ public class TokenService {
         try {
             // 1. 验证 Token
             DecodedJWT decodedJWT = getJwtVerifier().verify(token);
-            Long userId = decodedJWT.getClaim("userId").asLong();
+            Long userId = decodedJWT.getClaim(MetadataKeys.USER_ID).asLong();
 
             if (userId == null) {
                 return null;
@@ -208,7 +209,7 @@ public class TokenService {
 
         try {
             DecodedJWT decodedJWT = getJwtVerifier().verify(token);
-            Long userId = decodedJWT.getClaim("userId").asLong();
+            Long userId = decodedJWT.getClaim(MetadataKeys.USER_ID).asLong();
 
             if (userId != null) {
                 // 删除 Token
@@ -261,7 +262,7 @@ public class TokenService {
 
         try {
             DecodedJWT decodedJWT = getJwtVerifier().verify(token);
-            return decodedJWT.getClaim("userId").asLong();
+            return decodedJWT.getClaim(MetadataKeys.USER_ID).asLong();
         } catch (Exception e) {
             return null;
         }

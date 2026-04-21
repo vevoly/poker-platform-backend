@@ -41,7 +41,7 @@ public class DoudizhuRuleChecker extends BaseRuleChecker<DoudizhuRoom, DoudizhuP
 
     @Override
     protected List<Card> getLastPlayCards() {
-        return room.getLastPlayCards();
+        return room.getStateManager().getLastPlayCards();
     }
 
     @Override
@@ -60,7 +60,7 @@ public class DoudizhuRuleChecker extends BaseRuleChecker<DoudizhuRoom, DoudizhuP
                 current.getPattern() == CardPattern.ROCKET) {
             return ValidationResult.failure(GameCode.FIRST_PLAY_NO_BOMB.getCode(), GameCode.FIRST_PLAY_NO_BOMB.getMsg());
         }
-        return ValidationResult.success(current.getPattern(), current.getMainRank(), current.getSubRank());
+        return ValidationResult.success(current.getPattern(), cards, current.getMainRank(), current.getSubRank());
     }
 
     /**
@@ -71,8 +71,8 @@ public class DoudizhuRuleChecker extends BaseRuleChecker<DoudizhuRoom, DoudizhuP
         if (current.getPattern() == CardPattern.BOMB ||
                 current.getPattern() == CardPattern.ROCKET) {
             room.addBomb();
-            log.debug("炸弹触发，当前倍率: {}", room.getMultiplier());
+            log.debug("炸弹触发，当前倍率: {}", room.getStateManager().getMultiplier());
         }
-        return ValidationResult.success(current.getPattern(), current.getMainRank(), current.getSubRank());
+        return ValidationResult.success(current.getPattern(), cards, current.getMainRank(), current.getSubRank());
     }
 }

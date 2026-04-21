@@ -1,4 +1,4 @@
-package com.pokergame.common.cmd;
+package com.pokergame.common.cmd.main;
 
 /**
  * 路由模块定义 - 统一管理所有模块的主路由值
@@ -10,7 +10,7 @@ package com.pokergame.common.cmd;
  *
  * @author poker-platform
  */
-public interface ModuleCmd {
+public interface MainCmd {
 
     // ========== 系统模块 (1-100) ==========
 
@@ -46,7 +46,10 @@ public interface ModuleCmd {
 
 
 
-    // ========== 游戏模块 (101-200) ==========
+    // ========== 游戏模块 (100-200) ==========
+
+    /** 房间模块 */
+    int ROOM_CMD = 100;
 
     /** 斗地主模块 */
     int DOUDIZHU_CMD = 101;

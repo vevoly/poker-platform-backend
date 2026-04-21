@@ -8,6 +8,7 @@ import com.iohao.game.action.skeleton.eventbus.EventBusRunner;
 import com.iohao.game.bolt.broker.client.AbstractBrokerClientStartup;
 import com.iohao.game.bolt.broker.core.client.BrokerClient;
 import com.iohao.game.bolt.broker.core.client.BrokerClientBuilder;
+import com.pokergame.common.context.MyFlowContext;
 import com.pokergame.common.enums.LogicServer;
 import com.pokergame.robot.event.RobotEventBusSubscriber;
 import com.pokergame.robot.manager.RobotManager;
@@ -29,6 +30,7 @@ public class RobotLogicStartup extends AbstractBrokerClientStartup {
     @Override
     public BarSkeleton createBarSkeleton() {
         BarSkeletonBuilder builder = BarSkeleton.newBuilder();
+        builder.setFlowContextFactory(MyFlowContext::new);
         // 添加调试插件（开发环境）
         builder.addInOut(new DebugInOut());
         // 添加 EventBusRunner 以启用事件总线功能

@@ -22,10 +22,12 @@ public final class EnterRoomOperationHandler implements OperationHandler {
 
     @Override
     public boolean processVerify(PlayerOperationContext context) {
-        DoudizhuRoom room = context.getRoom();
-
-        // 检查房间是否有空位
-        GameCode.ROOM_FULL.assertTrueThrows(room.isFull());
+//        DoudizhuRoom room = context.getRoom();
+//        long userId = context.getUserId();
+//
+//        // 检查玩家是否已在房间中（如果已在，说明是重复触发，应当拒绝）
+//        DoudizhuPlayer existingPlayer = room.getDoudizhuPlayer(userId);
+//        GameCode.PLAYER_ALREADY_IN_ROOM.assertTrueThrows(existingPlayer != null);
 
         return true;
     }
@@ -35,19 +37,7 @@ public final class EnterRoomOperationHandler implements OperationHandler {
         long userId = context.getUserId();
         DoudizhuRoom room = context.getRoom();
 
-        log.info("玩家 {} 进入房间 {}", userId, room.getRoomId());
-
-        // 检查玩家是否已在房间中
         DoudizhuPlayer player = room.getDoudizhuPlayer(userId);
-        if (player == null) {
-            player = new DoudizhuPlayer();
-            player.setUserId(userId);
-            player.setNickname("玩家" + userId); // TODO: 从用户服获取昵称
-
-            room.addDoudizhuPlayer(player);
-            roomService.addPlayer(room, player);
-        }
-
         // 广播玩家进入房间
         DoudizhuBroadcastKit.broadcastEnterRoom(player, room);
     }

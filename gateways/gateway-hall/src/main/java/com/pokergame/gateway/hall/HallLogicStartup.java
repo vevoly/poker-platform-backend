@@ -8,6 +8,7 @@ import com.iohao.game.bolt.broker.core.client.BrokerAddress;
 import com.iohao.game.bolt.broker.core.client.BrokerClient;
 import com.iohao.game.bolt.broker.core.client.BrokerClientBuilder;
 import com.iohao.game.bolt.broker.core.common.IoGameGlobalConfig;
+import com.pokergame.common.context.MyFlowContext;
 import com.pokergame.common.enums.LogicServer;
 
 public class HallLogicStartup extends AbstractBrokerClientStartup {
@@ -16,6 +17,7 @@ public class HallLogicStartup extends AbstractBrokerClientStartup {
     public BarSkeleton createBarSkeleton() {
         // 业务框架构建器
         BarSkeletonBuilder builder = BarSkeleton.newBuilder();
+        builder.setFlowContextFactory(MyFlowContext::new);
         // 添加调试插件
         builder.addInOut(new DebugInOut());
         return builder.build();

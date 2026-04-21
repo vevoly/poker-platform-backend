@@ -1,12 +1,14 @@
 package com.pokergame.common.cmd;
 
+import com.pokergame.common.cmd.main.MainCmd;
+
 /**
  * 货币模块命令
  */
 public interface CurrencyCmd {
 
     /** Token模块 - 主cmd */
-    int CMD = ModuleCmd.CURRENCY_CMD;
+    int CMD = MainCmd.CURRENCY_CMD;
 
     /** 获取货币 */
     int GET_CURRENCY = 1;

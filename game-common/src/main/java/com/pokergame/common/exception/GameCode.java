@@ -91,6 +91,7 @@ public enum GameCode implements MsgExceptionInfo {
     PLAYER_ALREADY_IN_ROOM(202008, "玩家已在房间中"),
     PLAYER_NOT_IN_ROOM(202009, "玩家不在房间中"),
     PLAYER_NOT_READY(202010, "玩家未准备"),
+    NOT_ALL_READY(202011, "有玩家未准备"),
 
     // ========== 联盟错误 (203xxx) ==========
     ALLIANCE_NOT_FOUND(203001, "联盟不存在"),

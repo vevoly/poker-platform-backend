@@ -58,11 +58,11 @@ public class DoudizhuInputCommandRegion extends AbstractInputCommandRegion {
                 .setRequestData(() -> {
                     ScannerKit.log(() -> log.info("请输入最大玩家数(2-3):"));
                     int maxPlayers = ScannerKit.nextInt(3);
-                    ScannerKit.log(() -> log.info("请输入玩家昵称:"));
-                    String nickname = ScannerKit.nextLine("测试玩家");
+//                    ScannerKit.log(() -> log.info("请输入玩家昵称:"));
+//                    String nickname = ScannerKit.nextLine("测试玩家");
                     CreateRoomReq req = new CreateRoomReq();
                     req.setMaxPlayers(maxPlayers);
-                    req.setPlayerName(nickname);
+//                    req.setPlayerName(nickname);
                     return req;
                 })
                 .callback(result -> {
@@ -78,11 +78,11 @@ public class DoudizhuInputCommandRegion extends AbstractInputCommandRegion {
                 .setRequestData(() -> {
                     ScannerKit.log(() -> log.info("请输入房间ID:"));
                     long roomId = ScannerKit.nextLong();
-                    ScannerKit.log(() -> log.info("请输入玩家昵称:"));
-                    String nickname = ScannerKit.nextLine("测试玩家");
+//                    ScannerKit.log(() -> log.info("请输入玩家昵称:"));
+//                    String nickname = ScannerKit.nextLine("测试玩家");
                     JoinRoomReq req = new JoinRoomReq();
                     req.setRoomId(roomId);
-                    req.setPlayerName(nickname);
+//                    req.setPlayerName(nickname);
                     currentRoomId = String.valueOf(roomId);
                     return req;
                 })
@@ -113,9 +113,11 @@ public class DoudizhuInputCommandRegion extends AbstractInputCommandRegion {
 
         // ========== 3. 斗地主游戏操作 ==========
         // 准备
+        ReadyRoomReq readyRoomReq = new ReadyRoomReq();
+        readyRoomReq.setReady(true);
         ofCommand(DoudizhuCmd.READY)
                 .setTitle("准备")
-                .setRequestData(() -> null)
+                .setRequestData(() -> readyRoomReq)
                 .callback(result -> log.info("准备成功"));
 
         // 开始游戏（房主使用）

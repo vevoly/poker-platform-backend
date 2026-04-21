@@ -2,7 +2,6 @@ package com.pokergame.core.base;
 
 import com.pokergame.common.card.Card;
 import com.pokergame.common.pattern.PatternResult;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Getter
 @Setter
-public abstract class BaseGameState<P extends BasePlayer> {
+public abstract class BaseGameStateManager<P extends BasePlayer> {
 
     // ==================== 房间信息 ====================
 
@@ -91,7 +90,7 @@ public abstract class BaseGameState<P extends BasePlayer> {
      * @param ownerId 房主ID
      * @param maxPlayers 最大玩家数
      */
-    public BaseGameState(long roomId, long ownerId, int maxPlayers) {
+    public BaseGameStateManager(long roomId, long ownerId, int maxPlayers) {
         this.roomId = roomId;
         this.ownerId = ownerId;
         this.maxPlayers = maxPlayers;

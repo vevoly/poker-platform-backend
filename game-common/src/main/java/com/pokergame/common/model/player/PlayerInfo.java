@@ -23,4 +23,7 @@ public class PlayerInfo {
 
     /** 手牌数量 */
     private int cardCount;
+
+    /** 是否准备 */
+   private boolean ready;
 }

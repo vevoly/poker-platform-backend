@@ -17,14 +17,15 @@ import com.pokergame.common.pattern.PatternRecognizerFactory;
 import com.pokergame.common.rule.ValidationResult;
 
 import com.pokergame.common.exception.GameCode;
+import com.pokergame.core.base.BaseGameStateManager;
 import com.pokergame.game.doudizhu.bidding.BiddingManager;
 import com.pokergame.game.doudizhu.broadcast.DoudizhuBroadcastKit;
 import com.pokergame.game.doudizhu.enums.DoudizhuGameStatus;
-import com.pokergame.game.doudizhu.enums.InternalOperation;
 import com.pokergame.game.doudizhu.room.DoudizhuPlayer;
 import com.pokergame.game.doudizhu.room.DoudizhuRoom;
 import com.pokergame.game.doudizhu.room.DoudizhuRoomService;
 import com.pokergame.game.doudizhu.rule.DoudizhuRuleChecker;
+import com.pokergame.game.doudizhu.state.DoudizhuGameStateManager;
 import com.pokergame.starter.spring.annotation.PublishGameEvent;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,24 +49,6 @@ public class GameAction {
     private final DoudizhuRoomService roomService = DoudizhuRoomService.me();
     private final PatternRecognizer recognizer = PatternRecognizerFactory.get(GameType.DOUDIZHU);
 
-    // ==================== 准备操作 ====================
-
-    /**
-     * 准备/取消准备
-     *
-     * @param ctx FlowContext
-     */
-    @ActionMethod(DoudizhuCmd.READY)
-    public void ready(FlowContext ctx) {
-        long userId = ctx.getUserId();
-
-        DoudizhuRoom room = roomService.getUserRoom(userId);
-        GameCode.PLAYER_NOT_IN_ROOM.assertTrueThrows(room == null);
-
-        // 通过 OperationHandler 处理
-        room.operation(InternalOperation.READY);
-    }
-
     // ==================== 叫地主操作 ====================
 
     /**
@@ -88,7 +71,7 @@ public class GameAction {
         GameCode.PLAYER_NOT_IN_ROOM.assertTrueThrows(room == null);
 
         // 检查游戏状态
-        DoudizhuGameStatus status = room.getGameStatus();
+        DoudizhuGameStatus status = room.getDoudizhuGameStatus();
         GameCode.ILLEGAL_OPERATION.assertTrueThrows(status != DoudizhuGameStatus.BIDDING);
 
         // 获取叫地主管理器并处理
@@ -111,7 +94,7 @@ public class GameAction {
         GameCode.PLAYER_NOT_IN_ROOM.assertTrueThrows(room == null);
 
         // 检查游戏状态
-        DoudizhuGameStatus status = room.getGameStatus();
+        DoudizhuGameStatus status = room.getDoudizhuGameStatus();
         GameCode.ILLEGAL_OPERATION.assertTrueThrows(status != DoudizhuGameStatus.BIDDING);
 
         // 获取叫地主管理器并处理
@@ -145,7 +128,7 @@ public class GameAction {
         GameCode.PLAYER_NOT_IN_ROOM.assertTrueThrows(room == null);
 
         // 检查游戏状态
-        DoudizhuGameStatus status = room.getGameStatus();
+        DoudizhuGameStatus status = room.getDoudizhuGameStatus();
         GameCode.GAME_NOT_STARTED.assertTrueThrows(status != DoudizhuGameStatus.PLAYING);
 
         // 检查是否为当前玩家
@@ -166,7 +149,8 @@ public class GameAction {
         player.removeCards(req.getCards());
 
         // 更新房间出牌记录
-        room.updateLastPlay(userId, req.getCards(), result.getPattern(), result.getMainRank(), result.getSubRank());
+        DoudizhuGameStateManager stateManager = room.getStateManager();
+        stateManager.updateLastPlay(userId, req.getCards(), result.toPatternResult());
 
         // 如果是炸弹/王炸，增加倍率
         if (result.isBombOrRocket()) {
@@ -179,7 +163,7 @@ public class GameAction {
         // 检查游戏是否结束
         if (player.getCardCount() == 0) {
             log.info("玩家 {} 出完所有牌，游戏结束", userId);
-            room.changeGameStatus(DoudizhuGameStatus.FINISHED);
+            room.updateGameStatus(DoudizhuGameStatus.FINISHED);
             // TODO: 结算逻辑
             return;
         }
@@ -213,7 +197,7 @@ public class GameAction {
         GameCode.PLAYER_NOT_IN_ROOM.assertTrueThrows(room == null);
 
         // 检查游戏状态
-        DoudizhuGameStatus status = room.getGameStatus();
+        DoudizhuGameStatus status = room.getDoudizhuGameStatus();
         GameCode.GAME_NOT_STARTED.assertTrueThrows(status != DoudizhuGameStatus.PLAYING);
 
         // 检查是否为当前玩家

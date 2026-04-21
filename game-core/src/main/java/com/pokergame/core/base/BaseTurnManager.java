@@ -120,4 +120,11 @@ public abstract class BaseTurnManager<R extends Room> {
      * 超时回调（子类必须实现）
      */
     protected abstract void onTimeout();
+
+    /**
+     * 重置管理器（取消任务）
+     */
+    public void reset() {
+        cancelTimeout();
+    }
 }
