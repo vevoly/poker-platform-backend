@@ -50,28 +50,28 @@ public class MyWebSocketVerifyHandler extends WebSocketVerifyHandler implements 
         req.setToken(token);
         VerifyTokenResp verifyResp = RpcInvokeUtil.invoke(BrokerClientHelper.getBrokerClient(),
                 CmdInfo.of(AuthCmd.CMD, AuthCmd.VERIFY_TOKEN), req, VerifyTokenResp.class);
-
-        // 断言 Token 有效
-        GameCode.TOKEN_INVALID.assertTrueThrows(verifyResp == null || !verifyResp.getValid());
-
-        // 禁止重复登录（检查是否已有在线连接）
-        GameCode.ACCOUNT_ONLINE.assertTrueThrows(ExternalCommunicationKit.existUser(verifyResp.getUserId()));
-
-        // 2. 设置用户附加信息
-        MyAttachment attachment = new MyAttachment()
-                .setUserId(verifyResp.getUserId())
-                .setNickname(params.get(MetadataKeys.NICKNAME))
-                .setAvatar(params.get(MetadataKeys.AVATAR));
-
-        byte[] encode = DataCodecKit.encode(attachment);
-        userSession.option(UserSessionOption.attachment, encode);
-
         try {
+            // 断言 Token 有效
+            GameCode.TOKEN_INVALID.assertTrueThrows(verifyResp == null || !verifyResp.getValid());
+
+            // 禁止重复登录（检查是否已有在线连接）
+            GameCode.ACCOUNT_ONLINE.assertTrueThrows(ExternalCommunicationKit.existUser(verifyResp.getUserId()));
+
+            // 2. 设置用户附加信息
+            MyAttachment attachment = new MyAttachment()
+                    .setUserId(verifyResp.getUserId())
+                    .setNickname(params.get(MetadataKeys.NICKNAME))
+                    .setAvatar(params.get(MetadataKeys.AVATAR));
+
+            byte[] encode = DataCodecKit.encode(attachment);
+            userSession.option(UserSessionOption.attachment, encode);
+
             CmdInfo cmdInfo = CmdInfo.of(MainCmd.WS_CMD, WSCmd.LOGIN);
             RequestMessage requestMessage = userSession.ofRequestMessage(cmdInfo);
             brokerClient.oneway(requestMessage);
         } catch (Exception e) {
             log.error("发送 WebSocket 登录请求失败: {}", e.getMessage(), e);
+            return false;
         }
 
         // 返回 true 表示验证通过，返回 false 框架会关闭连接。

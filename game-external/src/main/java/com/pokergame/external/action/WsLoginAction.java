@@ -32,7 +32,6 @@ public class WsLoginAction {
         MyAttachment attachment = flowContext.getAttachment(MyAttachment.class);
         GameCode.LOGIN_FAILED.assertTrueThrows(!flowContext.bindingUserId(attachment.getUserId()), "绑定 userId 失败");
         flowContext.updateUserInfo(attachment); // 同步更新
-
         log.info("WebSocket 登录成功: userId={}, nickname={}", flowContext.getUserId(), flowContext.getNickname());
     }
 }

@@ -6,6 +6,7 @@ import com.iohao.game.external.client.user.DefaultClientUser;
 import com.pokergame.common.cmd.WSCmd;
 import com.pokergame.test.input.EmptyInputCommandRegion;
 import com.pokergame.test.util.LoginUtil;
+import com.pokergame.test.util.WebSocketClient;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.UnsupportedEncodingException;
@@ -19,33 +20,11 @@ import static io.restassured.RestAssured.given;
 public class WebSocketLoginTest {
 
     public static void main(String[] args) throws UnsupportedEncodingException {
-        // 登录获取 token
-        var result = LoginUtil.login("testuser1", "123456");
-        if (result == null) {
-            log.error("登录失败");
+        if (WebSocketClient.start("testuser1", "123456")) {
+            log.info("WebSocket 测试客户端已启动，输入命令 login 进行 WebSocket 登录");
             return;
         }
-        String token = result.getToken();
-        long userId = result.getUserId();
-        String nickname = URLEncoder.encode(result.getNickname(), StandardCharsets.UTF_8.name());
-        String avatar = result.getAvatar();
-
-        DefaultClientUser clientUser = new DefaultClientUser();
-        clientUser.setUserId(userId);
-        clientUser.setNickname(nickname);
-        clientUser.setJwt(token);
-
-        new ClientRunOne()
-                .setWebsocketVerify("?token=" + token + "&nickname=" + nickname + "&avatar=" + avatar)
-                .setInputCommandRegions(List.of(new EmptyInputCommandRegion()))
-                .setClientUser(clientUser)
-                .setConnectAddress("127.0.0.1")
-                .setConnectPort(10100)
-                .startup();
-
-
-
-        log.info("WebSocket 测试客户端已启动，输入命令 login 进行 WebSocket 登录");
+        log.error("WebSocket 测试客户端登录失败");
     }
 
 }
