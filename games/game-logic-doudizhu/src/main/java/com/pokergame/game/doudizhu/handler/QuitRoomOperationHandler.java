@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author poker-platform
  */
 @Slf4j
+@Deprecated
 public final class QuitRoomOperationHandler implements OperationHandler {
 
     private final DoudizhuRoomService roomService = DoudizhuRoomService.me();

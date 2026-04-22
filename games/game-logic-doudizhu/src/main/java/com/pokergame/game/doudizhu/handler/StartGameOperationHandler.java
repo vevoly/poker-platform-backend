@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
  * @author poker-platform
  */
 @Slf4j
+@Deprecated
 public final class StartGameOperationHandler implements OperationHandler {
 
     @Override

@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author poker-platform
  */
 @Slf4j
+@Deprecated
 public final class ReadyOperationHandler implements OperationHandler {
 
     @Override

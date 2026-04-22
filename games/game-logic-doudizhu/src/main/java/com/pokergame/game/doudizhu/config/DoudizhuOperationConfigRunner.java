@@ -23,12 +23,12 @@ public final class DoudizhuOperationConfigRunner implements Runner {
         var factory = DoudizhuRoomService.me().getOperationFactory();
 
         // 注册房间操作处理器
-        factory.mapping(InternalOperation.ENTER_ROOM, new EnterRoomOperationHandler());
-        factory.mapping(InternalOperation.QUIT_ROOM, new QuitRoomOperationHandler());
+//        factory.mapping(InternalOperation.ENTER_ROOM, new EnterRoomOperationHandler());
+//        factory.mapping(InternalOperation.QUIT_ROOM, new QuitRoomOperationHandler());
 
         // 注册游戏操作处理器（简单状态变更）
-        factory.mapping(InternalOperation.READY, new ReadyOperationHandler());
-        factory.mapping(InternalOperation.START_GAME, new StartGameOperationHandler());
+//        factory.mapping(InternalOperation.READY, new ReadyOperationHandler());
+//        factory.mapping(InternalOperation.START_GAME, new StartGameOperationHandler());
 
         // 注意：PLAY_CARD、PASS、GRAB_LANDLORD、NOT_GRAB 在 Action 层直接处理
         // 不需要注册 OperationHandler

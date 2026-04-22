@@ -3,7 +3,6 @@ package com.pokergame.test.doudizhu;
 import com.iohao.game.external.client.join.ClientRunOne;
 import com.iohao.game.external.client.user.DefaultClientUser;
 import com.pokergame.common.model.auth.LoginReq;
-import com.pokergame.test.game.doudizhu.DoudizhuInputCommandRegion;
 import io.restassured.RestAssured;
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,50 +27,50 @@ import static io.restassured.RestAssured.given;
  *
  * @author poker-platform
  */
-@Slf4j
-public class DoudizhuClientTest {
-
-    public static void main(String[] args) {
-        // 1. HTTP 登录获取 token
-        String token = httpLogin("test001", "123456");
-        log.info("HTTP 登录成功，token: {}", token);
-
-        // 2. 创建模拟玩家
-        DefaultClientUser clientUser = new DefaultClientUser();
-        clientUser.setUserId(1001L);          // 临时 ID，实际登录成功后可从响应获取
-        clientUser.setJwt(token);
-
-        // 3. 启动 WebSocket 客户端，并自动携带 token
-        new ClientRunOne()
-                .setWebsocketVerify("?token=" + token)   // 关键：将 token 添加到 WebSocket URL
-                .setInputCommandRegions(List.of(new DoudizhuInputCommandRegion()))
-                .setClientUser(clientUser)
-                .setConnectAddress("127.0.0.1")
-                .setConnectPort(10100)
-                .startup();
-
-        log.info("斗地主模拟客户端已启动");
-    }
-
-    /**
-     * HTTP 登录，返回 token
-     */
-    private static String httpLogin(String username, String password) {
-        RestAssured.baseURI = "http://localhost";
-        RestAssured.port = 8080;
-
-        LoginReq loginReq = new LoginReq();
-        loginReq.setUsername(username);
-        loginReq.setPassword(password);
-
-        return given()
-                .contentType("application/json")
-                .body(loginReq)
-                .when()
-                .post("/api/user/login")
-                .then()
-                .statusCode(200)
-                .extract()
-                .path("data.token");
-    }
-}
+//@Slf4j
+//public class DoudizhuClientTest {
+//
+//    public static void main(String[] args) {
+//        // 1. HTTP 登录获取 token
+//        String token = httpLogin("test001", "123456");
+//        log.info("HTTP 登录成功，token: {}", token);
+//
+//        // 2. 创建模拟玩家
+//        DefaultClientUser clientUser = new DefaultClientUser();
+//        clientUser.setUserId(1001L);          // 临时 ID，实际登录成功后可从响应获取
+//        clientUser.setJwt(token);
+//
+//        // 3. 启动 WebSocket 客户端，并自动携带 token
+//        new ClientRunOne()
+//                .setWebsocketVerify("?token=" + token)   // 关键：将 token 添加到 WebSocket URL
+//                .setInputCommandRegions(List.of(new DoudizhuInputCommandRegion()))
+//                .setClientUser(clientUser)
+//                .setConnectAddress("127.0.0.1")
+//                .setConnectPort(10100)
+//                .startup();
+//
+//        log.info("斗地主模拟客户端已启动");
+//    }
+//
+//    /**
+//     * HTTP 登录，返回 token
+//     */
+//    private static String httpLogin(String username, String password) {
+//        RestAssured.baseURI = "http://localhost";
+//        RestAssured.port = 8080;
+//
+//        LoginReq loginReq = new LoginReq();
+//        loginReq.setUsername(username);
+//        loginReq.setPassword(password);
+//
+//        return given()
+//                .contentType("application/json")
+//                .body(loginReq)
+//                .when()
+//                .post("/api/user/login")
+//                .then()
+//                .statusCode(200)
+//                .extract()
+//                .path("data.token");
+//    }
+//}

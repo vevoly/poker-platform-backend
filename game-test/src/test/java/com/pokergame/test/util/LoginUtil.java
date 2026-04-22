@@ -14,6 +14,8 @@ public class LoginUtil {
     public static class LoginResult {
         String token;
         Long userId;
+        String nickname;
+        String avatar;
     }
 
     public static LoginResult login(String username, String password) {
@@ -42,8 +44,10 @@ public class LoginUtil {
         if (code == 200) {
             String token = response.jsonPath().getString("data.token");
             Long userId = response.jsonPath().getLong("data.userId");
-            log.info("登录成功: {} (userId={})", username, userId);
-            return new LoginResult(token, userId);
+            String nickname = response.jsonPath().getString("data.nickname");
+            String avatar = response.jsonPath().getString("data.avatar");
+            log.info("登录成功: {} (userId={}), token: {}", username, userId, token);
+            return new LoginResult(token, userId, nickname, avatar);
         } else {
             log.error("登录失败: {}, code={}", username, code);
             return null;

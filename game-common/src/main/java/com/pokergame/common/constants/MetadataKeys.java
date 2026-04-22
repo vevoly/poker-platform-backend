@@ -10,6 +10,12 @@ public final class MetadataKeys {
     public static final String USER_ID = "userId";
     /** 用户编码 */
     public static final String USER_CODE = "userCode";
+    /** 用户名 */
+    public static final String USER_NAME = "username";
+    /** 昵称 */
+    public static final String NICKNAME = "nickname";
+    /** 头像 */
+    public static final String AVATAR = "avatar";
     /** 俱乐部Id */
     public static final String CLUB_ID = "clubId";
     /** 联盟Id */
