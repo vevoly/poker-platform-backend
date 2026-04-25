@@ -3,15 +3,19 @@ package com.pokergame.test.doudizhu;
 import com.iohao.game.external.client.join.ClientRunOne;
 import com.iohao.game.external.client.user.ClientUser;
 import com.iohao.game.external.client.user.DefaultClientUser;
+import com.pokergame.test.region.DoudizhuGameInputCommandRegion;
+import com.pokergame.test.region.RoomInputCommandRegion;
 import com.pokergame.test.util.LoginUtil;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
 
 @Slf4j
 public class HumanPlayerClient2 {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws UnsupportedEncodingException {
         var result = LoginUtil.login("test003", "123456");
         if (result == null) {
             log.error("登录失败");
@@ -19,16 +23,19 @@ public class HumanPlayerClient2 {
         }
         String token = result.getToken();
         long userId = result.getUserId();
+        String nickname = URLEncoder.encode(result.getNickname(), "UTF-8");
+        String avatar = result.getAvatar() != null ? result.getAvatar() : "";
 
-        ClientUser clientUser = new DefaultClientUser();
+        DefaultClientUser clientUser = new DefaultClientUser();
         clientUser.setUserId(userId);
+        clientUser.setNickname(nickname);
         clientUser.setJwt(token);
 
         RoomInputCommandRegion roomRegion = new RoomInputCommandRegion();
         DoudizhuGameInputCommandRegion gameRegion = new DoudizhuGameInputCommandRegion();
 
         new ClientRunOne()
-                .setWebsocketVerify("?token=" + token)
+                .setWebsocketVerify("?token=" + token + "&nickname=" + nickname + "&avatar=" + avatar)
                 .setInputCommandRegions(List.of(roomRegion, gameRegion))
                 .setClientUser(clientUser)
                 .setConnectAddress("127.0.0.1")

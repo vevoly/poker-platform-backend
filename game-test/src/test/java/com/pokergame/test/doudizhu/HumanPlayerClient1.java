@@ -1,10 +1,11 @@
 package com.pokergame.test.doudizhu;
 
 import com.iohao.game.external.client.InputCommandRegion;
+import com.pokergame.test.region.DoudizhuGameInputCommandRegion;
+import com.pokergame.test.region.RoomInputCommandRegion;
 import com.pokergame.test.util.WebSocketClient;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 
 @Slf4j
@@ -25,6 +26,11 @@ public class HumanPlayerClient1 {
         log.info("  出牌: 101-3");
         log.info("  过牌: 101-4");
 
-//        try { Thread.currentThread().join(); } catch (InterruptedException e) {}
+        // 保持主线程运行（因为 ClientRunOne 启动后主线程会结束）
+        try {
+            Thread.currentThread().join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 }

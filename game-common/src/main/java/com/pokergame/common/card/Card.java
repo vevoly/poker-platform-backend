@@ -1,9 +1,12 @@
 package com.pokergame.common.card;
 
+import com.pokergame.common.converter.Convertible;
 import lombok.Getter;
 
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 牌的定义
@@ -26,7 +29,7 @@ import java.util.Map;
  * |  2   |   12   |   25   |   38   |   51   | { 12, 25, 38, 51 }       |
  */
 @Getter
-public class Card implements Comparable<Card> {
+public class Card implements Comparable<Card>, Convertible<CardDTO> {
 
     /** 牌花色 */
     private final CardSuit suit;
@@ -167,5 +170,35 @@ public class Card implements Comparable<Card> {
     @Override
     public int hashCode() {
         return id;
+    }
+
+    /**
+     * 转换为 DTO
+     * @return
+     */
+    @Override
+    public CardDTO toDTO() {
+        return CardDTO.of(this.id);
+    }
+
+    /**
+     * 将 CardDTO 转换为 Card
+     * @param dto CardDTO 对象
+     * @return Card 对象，如果 dto 为 null 则返回 null
+     */
+    public static Card fromDTO(CardDTO dto) {
+        return dto == null ? null : of(dto.getId());
+    }
+
+    /**
+     * 批量将 CardDTO 列表转换为 Card 列表
+     * @param dtos CardDTO 列表
+     * @return Card 列表，如果 dtos 为 null 则返回 null
+     */
+    public static List<Card> fromDTOs(List<CardDTO> dtos) {
+        if (dtos == null) return null;
+        return dtos.stream()
+                .map(Card::fromDTO)
+                .collect(Collectors.toList());
     }
 }

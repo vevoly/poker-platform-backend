@@ -1,5 +1,7 @@
 package com.pokergame.game.doudizhu.room;
 
+import com.pokergame.common.converter.Convertible;
+import com.pokergame.common.model.player.PlayerInfoDTO;
 import com.pokergame.core.base.BasePlayer;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Getter
 @Setter
-public class DoudizhuPlayer extends BasePlayer {
+public class DoudizhuPlayer extends BasePlayer implements Convertible<PlayerInfoDTO> {
 
     /** 叫地主倍数 */
     private int bidMultiple = 0;
@@ -43,5 +45,15 @@ public class DoudizhuPlayer extends BasePlayer {
     public String toString() {
         return String.format("DoudizhuPlayer{userId=%d, nickname=%s, cardCount=%d, ready=%s, landlord=%s, bidMultiple=%d}",
                 getUserId(), getNickname(), getCardCount(), isReady(), isLandlord(), bidMultiple);
+    }
+
+    @Override
+    public PlayerInfoDTO toDTO() {
+        return new PlayerInfoDTO()
+                .setUserId(getUserId())
+                .setNickname(getNickname())
+                .setLandlord(isLandlord())
+                .setCardCount(getCardCount())
+                .setReady(isReady());
     }
 }

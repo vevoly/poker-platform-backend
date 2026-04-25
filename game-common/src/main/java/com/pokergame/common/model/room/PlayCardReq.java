@@ -1,7 +1,7 @@
 package com.pokergame.common.model.room;
 
 import com.baidu.bjf.remoting.protobuf.annotation.ProtobufClass;
-import com.pokergame.common.card.Card;
+import com.pokergame.common.card.CardDTO;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.ToString;
@@ -24,5 +24,5 @@ public class PlayCardReq {
     private long roomId;
 
     /** 出的牌 */
-    private List<Card> cards;
+    private List<CardDTO> cards;
 }

@@ -9,6 +9,8 @@ import com.iohao.game.widget.light.room.flow.RoomCreator;
 import com.iohao.game.widget.light.room.operation.OperationFactory;
 import com.iohao.game.widget.light.room.operation.OperationService;
 import com.pokergame.core.base.BaseRoomService;
+import com.pokergame.game.doudizhu.enums.InternalOperation;
+import com.pokergame.game.doudizhu.handler.PassOperationHandler;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jctools.maps.NonBlockingHashMap;
@@ -39,9 +41,11 @@ public final class DoudizhuRoomService extends BaseRoomService {
     private final AtomicLong roomIdGenerator = new AtomicLong(System.currentTimeMillis());
 
     private DoudizhuRoomService() {
-        // 可以在此注册斗地主的 OperationHandler
-        // 例如：operationFactory.registerOperationHandler(InternalOperation.READY, new ReadyOperationHandler());
-        log.info("DoudizhuRoomService 初始化完成");
+        // 在此注册斗地主的 OperationHandler
+
+        // 过牌
+        operationFactory.mapping(InternalOperation.PASS, new PassOperationHandler());
+        log.info("斗地主操作处理器注册完成，DoudizhuRoomService 初始化完成！");
     }
 
     public static DoudizhuRoomService me() {

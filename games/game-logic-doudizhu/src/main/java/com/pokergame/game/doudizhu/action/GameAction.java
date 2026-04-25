@@ -4,20 +4,18 @@ import com.iohao.game.action.skeleton.annotation.ActionController;
 import com.iohao.game.action.skeleton.annotation.ActionMethod;
 import com.iohao.game.action.skeleton.core.exception.MsgException;
 import com.iohao.game.action.skeleton.core.flow.FlowContext;
+import com.pokergame.common.card.Card;
 import com.pokergame.common.cmd.DoudizhuCmd;
 import com.pokergame.common.enums.GameActionType;
 import com.pokergame.common.enums.GameEventType;
+import com.pokergame.common.exception.GameCode;
 import com.pokergame.common.game.GameType;
-
 import com.pokergame.common.model.game.doudizhu.GrabLandlordReq;
 import com.pokergame.common.model.room.PassReq;
 import com.pokergame.common.model.room.PlayCardReq;
 import com.pokergame.common.pattern.PatternRecognizer;
 import com.pokergame.common.pattern.PatternRecognizerFactory;
 import com.pokergame.common.rule.ValidationResult;
-
-import com.pokergame.common.exception.GameCode;
-import com.pokergame.core.base.BaseGameStateManager;
 import com.pokergame.game.doudizhu.bidding.BiddingManager;
 import com.pokergame.game.doudizhu.broadcast.DoudizhuBroadcastKit;
 import com.pokergame.game.doudizhu.enums.DoudizhuGameStatus;
@@ -28,6 +26,8 @@ import com.pokergame.game.doudizhu.rule.DoudizhuRuleChecker;
 import com.pokergame.game.doudizhu.state.DoudizhuGameStateManager;
 import com.pokergame.starter.spring.annotation.PublishGameEvent;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.List;
 
 /**
  * 游戏操作 Action
@@ -136,21 +136,22 @@ public class GameAction {
 
         // 获取玩家
         DoudizhuPlayer player = room.getDoudizhuPlayer(userId);
+        List<Card> cards = Card.fromDTOs(req.getCards());
 
         // 使用规则检查器校验出牌
         DoudizhuRuleChecker ruleChecker = new DoudizhuRuleChecker(room);
-        ValidationResult result = ruleChecker.validatePlay(userId, req.getCards());
+        ValidationResult result = ruleChecker.validatePlay(userId, cards);
 
         if (!result.isValid()) {
             throw new MsgException(result.getErrorCode(), result.getErrorMessage());
         }
 
         // 移除玩家手牌
-        player.removeCards(req.getCards());
+        player.removeCards(cards);
 
         // 更新房间出牌记录
         DoudizhuGameStateManager stateManager = room.getStateManager();
-        stateManager.updateLastPlay(userId, req.getCards(), result.toPatternResult());
+        stateManager.updateLastPlay(userId, cards, result.toPatternResult());
 
         // 如果是炸弹/王炸，增加倍率
         if (result.isBombOrRocket()) {
@@ -158,7 +159,7 @@ public class GameAction {
         }
 
         // 广播出牌
-        DoudizhuBroadcastKit.broadcastPlayCard(userId, req.getCards(), room);
+        DoudizhuBroadcastKit.broadcastPlayCard(userId, cards, room);
 
         // 检查游戏是否结束
         if (player.getCardCount() == 0) {

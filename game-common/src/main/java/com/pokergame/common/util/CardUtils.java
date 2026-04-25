@@ -4,10 +4,7 @@ import com.pokergame.common.card.Card;
 import com.pokergame.common.card.CardSuit;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Map;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -21,6 +18,7 @@ public class CardUtils {
      */
     public static Map<Integer, List<Card>> groupByRank(List<Card> cards) {
         return cards.stream()
+                .filter(Objects::nonNull)  // 过滤掉 null
                 .collect(Collectors.groupingBy(c -> c.getRank().getValue()));
     }
 
@@ -29,6 +27,7 @@ public class CardUtils {
      */
     public static Map<CardSuit, List<Card>> groupBySuit(List<Card> cards) {
         return cards.stream()
+                .filter(Objects::nonNull)  // 过滤掉 null
                 .collect(Collectors.groupingBy(Card::getSuit));
     }
 

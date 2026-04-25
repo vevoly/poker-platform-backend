@@ -10,7 +10,7 @@ import lombok.experimental.FieldDefaults;
 @ProtobufClass
 @Accessors(chain = true)
 @FieldDefaults(level = AccessLevel.PUBLIC)
-public class PlayerInfo {
+public class PlayerInfoDTO {
 
     /** 玩家ID */
     private long userId;

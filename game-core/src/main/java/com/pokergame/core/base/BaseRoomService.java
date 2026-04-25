@@ -1,5 +1,6 @@
 package com.pokergame.core.base;
 
+import com.iohao.game.widget.light.room.Player;
 import com.iohao.game.widget.light.room.Room;
 import com.iohao.game.widget.light.room.RoomService;
 import com.iohao.game.widget.light.room.flow.RoomCreateContext;
@@ -44,7 +45,7 @@ public abstract class BaseRoomService implements OperationService, RoomCreator {
         delegate.removeRoom(room);
     }
 
-    public void addPlayer(BaseRoom room, BasePlayer player) {
+    public void addPlayer(BaseRoom room, Player player) {
         delegate.addPlayer(room, player);
     }
 

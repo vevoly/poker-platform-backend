@@ -1,8 +1,9 @@
 package com.pokergame.core.room;
 
 import com.iohao.game.action.skeleton.core.flow.FlowContext;
+import com.iohao.game.widget.light.room.Player;
 import com.pokergame.common.exception.GameCode;
-import com.pokergame.common.model.player.PlayerInfo;
+import com.pokergame.common.model.player.PlayerInfoDTO;
 import com.pokergame.common.model.room.JoinRoomResp;
 import com.pokergame.core.base.BasePlayer;
 import com.pokergame.core.base.BaseRoom;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -31,15 +33,14 @@ public final class RoomOperations {
      *
      * @param ctx            FlowContext（用于获取当前用户ID）
      * @param roomId         要加入的房间ID
-     * @param playerNickname 玩家昵称（如果为空，则使用 "玩家" + userId）
      * @param roomService    房间服务
      * @param afterJoin      加入房间后的回调（通常用于广播“玩家进入”消息），可为 null
      * @return 加入房间响应
      */
     public static JoinRoomResp joinRoom(FlowContext ctx,
                                         long roomId,
-                                        String playerNickname,
                                         BaseRoomService roomService,
+                                        Function<Long, ? extends Player> playerCreator,
                                         Consumer<BaseRoom> afterJoin) {
         long userId = ctx.getUserId();
 
@@ -58,10 +59,8 @@ public final class RoomOperations {
                 !"WAITING".equals(status) && !"READY".equals(status));
 
         // 4. 创建玩家对象
-        if (playerNickname == null || playerNickname.isEmpty()) {
-            playerNickname = "玩家" + userId;
-        }
-        BasePlayer player = new BasePlayer(userId, playerNickname);
+        Player player = playerCreator.apply(userId);
+//        BasePlayer player = new BasePlayer(userId, playerNickname);
 
         // 5. 加入房间
         room.addPlayer(player);
@@ -159,11 +158,11 @@ public final class RoomOperations {
 
     // ========== 私有辅助方法 ==========
 
-    private static List<PlayerInfo> buildPlayerInfoList(BaseRoom room) {
+    private static List<PlayerInfoDTO> buildPlayerInfoList(BaseRoom room) {
         return room.getPlayerMap().values().stream()
                 .map(p -> {
                     BasePlayer bp = (BasePlayer) p;
-                    return new PlayerInfo()
+                    return new PlayerInfoDTO()
                             .setUserId(bp.getUserId())
                             .setNickname(bp.getNickname())
                             .setReady(bp.isReady())

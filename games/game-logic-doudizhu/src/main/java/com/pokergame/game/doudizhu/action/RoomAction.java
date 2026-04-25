@@ -80,11 +80,16 @@ public class RoomAction {
 
     @ActionMethod(RoomCmd.JOIN_ROOM)
     public JoinRoomResp joinRoom(JoinRoomReq req, MyFlowContext ctx) {
+        String nickname = ctx.getNickname();
+        if (nickname == null || nickname.isEmpty()) {
+            nickname = "玩家" + ctx.getUserId();
+        }
+        String finalNickname = nickname;
         return RoomOperations.joinRoom(
                 ctx,
                 req.getRoomId(),
-                ctx.getNickname(),
                 roomService,
+                userId -> new DoudizhuPlayer(userId, finalNickname),
                 room -> {
                     DoudizhuRoom doudizhuRoom = (DoudizhuRoom) room;
                     DoudizhuPlayer player = doudizhuRoom.getDoudizhuPlayer(ctx.getUserId());

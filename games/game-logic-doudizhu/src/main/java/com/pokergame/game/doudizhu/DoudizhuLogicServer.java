@@ -3,6 +3,8 @@ package com.pokergame.game.doudizhu;
 import com.iohao.game.action.skeleton.core.BarSkeleton;
 import com.iohao.game.action.skeleton.core.BarSkeletonBuilderParamConfig;
 import com.iohao.game.action.skeleton.core.flow.internal.DebugInOut;
+import com.iohao.game.action.skeleton.eventbus.EventBus;
+import com.iohao.game.action.skeleton.eventbus.EventBusRunner;
 import com.iohao.game.bolt.broker.client.AbstractBrokerClientStartup;
 import com.iohao.game.bolt.broker.client.BrokerClientApplication;
 import com.iohao.game.bolt.broker.core.client.BrokerAddress;
@@ -10,10 +12,11 @@ import com.iohao.game.bolt.broker.core.client.BrokerClient;
 import com.iohao.game.bolt.broker.core.client.BrokerClientBuilder;
 import com.iohao.game.bolt.broker.core.common.IoGameGlobalConfig;
 import com.iohao.game.common.kit.NetworkKit;
+import com.pokergame.common.deal.pool.HandRankPoolManager;
 import com.pokergame.common.enums.LogicServer;
 import com.pokergame.common.context.MyFlowContext;
+import com.pokergame.common.game.GameType;
 import com.pokergame.game.doudizhu.action.RoomAction;
-import com.pokergame.game.doudizhu.config.DoudizhuOperationConfigRunner;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -35,6 +38,8 @@ public class DoudizhuLogicServer extends AbstractBrokerClientStartup {
 
     public static void main(String[] args) {
         BrokerClientApplication.start(new DoudizhuLogicServer());
+        // 初始化牌型池
+        HandRankPoolManager.getInstance().ensureInitialized(GameType.DOUDIZHU);
     }
 
     @Override
@@ -53,10 +58,19 @@ public class DoudizhuLogicServer extends AbstractBrokerClientStartup {
         builder.addInOut(new DebugInOut());
 
         // 4. 注册操作配置 Runner
-        builder.addRunner(new DoudizhuOperationConfigRunner());
+//        builder.addRunner(new DoudizhuOperationConfigRunner());
 
         // 5. 设置自定义 FlowContext
         builder.setFlowContextFactory(MyFlowContext::new);
+
+        // 6. 添加 EventBusRunner，以开启分布式事件总线功能
+        // 即使当前逻辑服没有任何订阅者，只是向外发送事件，也必须添加。
+        builder.addRunner(new EventBusRunner() {
+            @Override
+            public void registerEventBus(EventBus eventBus, BarSkeleton skeleton) {
+                log.info("斗地主逻辑服的事件总线已启动");
+            }
+        });
 
         return builder.build();
     }

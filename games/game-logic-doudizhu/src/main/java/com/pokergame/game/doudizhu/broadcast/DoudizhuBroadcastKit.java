@@ -2,10 +2,13 @@ package com.pokergame.game.doudizhu.broadcast;
 
 import com.baidu.bjf.remoting.protobuf.annotation.ProtobufClass;
 import com.pokergame.common.card.Card;
+import com.pokergame.common.card.CardDTO;
 import com.pokergame.common.cmd.DoudizhuCmd;
 import com.pokergame.common.cmd.RoomCmd;
+import com.pokergame.common.converter.Convertible;
 import com.pokergame.common.game.GameType;
 import com.pokergame.common.model.broadcast.BaseBroadcastData;
+import com.pokergame.common.model.player.PlayerInfoDTO;
 import com.pokergame.core.base.BaseBroadcastKit;
 import com.pokergame.game.doudizhu.room.DoudizhuPlayer;
 import com.pokergame.game.doudizhu.room.DoudizhuRoom;
@@ -71,8 +74,9 @@ public final class DoudizhuBroadcastKit {
         GameStartBroadcastData data = new GameStartBroadcastData();
         data.setGameType(GAME_TYPE);
         data.setRoomId(room.getRoomId());
-        // 注意：players 列表中的每个 DoudizhuPlayer 可能需要转换为不含敏感信息的 DTO，这里简单传递，建议使用浅拷贝或只传必要字段
-        data.setPlayers(room.getAllDoudizhuPlayers());
+        // 注意：players 列表中的每个 DoudizhuPlayer 可能需要转换为不含敏感信息的 DTO
+        List<PlayerInfoDTO> players = Convertible.toDTOList(room.getAllDoudizhuPlayers());
+        data.setPlayers(players);
 
         BaseBroadcastKit.broadcastToRoom(room, RoomCmd.CMD, RoomCmd.GAME_START_BROADCAST, data);
     }
@@ -84,7 +88,7 @@ public final class DoudizhuBroadcastKit {
         PlayCardBroadcastData data = new PlayCardBroadcastData();
         data.setGameType(GAME_TYPE);
         data.setUserId(playerId);
-        data.setCards(cards);
+        data.setCards(Convertible.toDTOList(cards));
         data.setRemainingCards(room.getDoudizhuPlayer(playerId).getCardCount());
 
         BaseBroadcastKit.broadcastToRoom(room, DoudizhuCmd.CMD, DoudizhuCmd.PLAY_CARD_BROADCAST, data);
@@ -167,14 +171,14 @@ public final class DoudizhuBroadcastKit {
     @ProtobufClass
     public static class GameStartBroadcastData extends BaseBroadcastData {
         private long roomId;
-        private List<DoudizhuPlayer> players;
+        private List<PlayerInfoDTO> players;
     }
 
     @Data
     @ProtobufClass
     public static class PlayCardBroadcastData extends BaseBroadcastData {
         private long userId;
-        private List<Card> cards;
+        private List<CardDTO> cards;
         private int remainingCards;
     }
 

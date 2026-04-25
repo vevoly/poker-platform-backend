@@ -1,4 +1,4 @@
-package com.pokergame.test.input;
+package com.pokergame.test.region;
 
 import com.iohao.game.external.client.AbstractInputCommandRegion;
 

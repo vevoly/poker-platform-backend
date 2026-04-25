@@ -40,6 +40,8 @@ public class CardDTO implements Serializable {
         }
     }
 
+
+
     @Override
     public String toString() {
         return "CardDTO{" + id + "}";

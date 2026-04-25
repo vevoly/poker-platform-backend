@@ -5,6 +5,7 @@ import com.iohao.game.bolt.broker.core.client.BrokerClientHelper;
 import com.pokergame.common.card.Card;
 import com.pokergame.common.cmd.DoudizhuCmd;
 import com.pokergame.common.cmd.RoomCmd;
+import com.pokergame.common.converter.Convertible;
 import com.pokergame.common.model.game.StartGameReq;
 import com.pokergame.common.model.game.doudizhu.GrabLandlordReq;
 import com.pokergame.common.model.game.doudizhu.NotGrabLandlordReq;
@@ -97,7 +98,7 @@ public class FullDoudizhuAutoTest {
         // 6. 出牌（简化：地主出最小的牌，其他过牌）
         // 需要获取玩家手牌，这里略，假设有牌0
         PlayCardReq playReq = new PlayCardReq();
-        playReq.setCards(List.of(Card.of(0)));
+        playReq.setCards(Convertible.toDTOList(List.of(Card.of(0))));
         RpcInvokeUtil.invoke(BrokerClientHelper.getBrokerClient(),
                 CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.PLAY_CARD), playReq, OWNER_ID, Void.class);
         PassReq passReq = new PassReq();

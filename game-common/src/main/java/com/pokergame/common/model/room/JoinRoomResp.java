@@ -1,7 +1,7 @@
 package com.pokergame.common.model.room;
 
 import com.baidu.bjf.remoting.protobuf.annotation.ProtobufClass;
-import com.pokergame.common.model.player.PlayerInfo;
+import com.pokergame.common.model.player.PlayerInfoDTO;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -28,7 +28,7 @@ public class JoinRoomResp {
     private int playerCount;
 
     /** 玩家列表 */
-    private List<PlayerInfo> players;
+    private List<PlayerInfoDTO> players;
 
     /** 游戏状态 */
     private String gameStatus;

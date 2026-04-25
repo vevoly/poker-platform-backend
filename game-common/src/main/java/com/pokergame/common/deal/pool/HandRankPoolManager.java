@@ -22,16 +22,32 @@ public class HandRankPoolManager {
 
     private static final HandRankPoolManager INSTANCE = new HandRankPoolManager();
 
+    /** 牌型池缓存 */
     private final Map<String, HandRankPool> pools = new ConcurrentHashMap<>();
+
+    /** 牌型池缓存，按游戏分类 */
     private final Map<GameType, Map<String, HandRankPool>> gamePools = new ConcurrentHashMap<>();
 
+    /** 是否已经初始化完成 */
+    private final Map<GameType, Boolean> gameInitialized = new ConcurrentHashMap<>();
+
     private HandRankPoolManager() {
-        // 初始化默认牌型池
-        initDefaultPools();
     }
 
     public static HandRankPoolManager getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * 确保指定游戏的牌型池已初始化（幂等）
+     * @param gameType 游戏类型
+     */
+    public synchronized void ensureInitialized(GameType gameType) {
+        if (gameInitialized.getOrDefault(gameType, false)) {
+            return;
+        }
+        initGamePools(gameType);
+        gameInitialized.put(gameType, true);
     }
 
     /**
@@ -75,6 +91,7 @@ public class HandRankPoolManager {
     /**
      * 初始化默认牌型池
      */
+    @Deprecated
     private void initDefaultPools() {
         // 斗地主默认牌型池
         createDefaultDoudizhuPools();
@@ -84,6 +101,26 @@ public class HandRankPoolManager {
         createDefaultBullPools();
 
         log.info("牌型池初始化完成，共注册 {} 个池", pools.size());
+    }
+
+    /**
+     * 初始化各个游戏的牌型池
+     */
+    private void initGamePools(GameType gameType) {
+        switch (gameType) {
+            case DOUDIZHU:
+                createDefaultDoudizhuPools();
+                break;
+            case TEXAS:
+                createDefaultTexasPools();
+                break;
+            case BULL:
+                createDefaultBullPools();
+                break;
+            default:
+                log.warn("未知游戏类型，无法初始化牌型池: {}", gameType);
+        }
+        log.info("游戏 {} 牌型池初始化完成", gameType);
     }
 
     // ==================== 斗地主牌型池 ====================
