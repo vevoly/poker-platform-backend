@@ -10,6 +10,14 @@ import lombok.Data;
 @Data
 @ProtobufClass
 public class BaseBroadcastData {
+    /** 毫秒时间戳 */
+    protected long ts;
+    /** 消息序列ID */
+    protected int seqId;
+    /** 签名 */
+    protected String sign;
     /** 游戏类型（例如斗地主、德州等），见 GameType 枚举 */
-    private int gameType;
+    protected int gameType;
+    /** 操作者用户ID，0 无操作者*/
+    protected long userId;
 }

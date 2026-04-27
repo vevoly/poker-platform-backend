@@ -20,21 +20,10 @@ public class DoudizhuGameStateManager extends BaseGameStateManager<DoudizhuPlaye
     /** 当前游戏状态 */
     private DoudizhuGameStatus gameStatus = DoudizhuGameStatus.WAITING;
 
-    /**
-     * 构造函数
-     *
-     * @param roomId     房间ID
-     * @param ownerId    房主ID
-     * @param maxPlayers 最大玩家数
-     */
-    public DoudizhuGameStateManager(long roomId, long ownerId, int maxPlayers) {
-        super(roomId, ownerId, maxPlayers);
-    }
-
     @Override
     public void changeStatus(Enum<?> newStatus) {
         this.gameStatus = (DoudizhuGameStatus) newStatus;
-        log.info("房间 {} 状态变更: {}", getRoomId(), gameStatus);
+        log.info("房间状态变更: {}", gameStatus);
     }
 
     @Override
@@ -47,21 +36,7 @@ public class DoudizhuGameStateManager extends BaseGameStateManager<DoudizhuPlaye
      */
     @Override
     public void reset() {
+        super.resetRound();
         this.gameStatus = DoudizhuGameStatus.WAITING;
-        // 清空回合数据
-        this.getPlayOrder().clear();
-        this.setCurrentTurnIndex(0);
-        // 清空牌局数据
-        this.setLandlordId(0);
-        this.getLandlordExtraCards().clear();
-        this.setLastPlayCards(null);
-        this.setLastPlayPlayerId(0);
-        this.setLastPattern(null);
-        // 清空倍率
-        this.setBombCount(0);
-        this.setMultiplier(1);
-        for (DoudizhuPlayer player : players.values()) {
-            player.reset();
-        }
     }
 }

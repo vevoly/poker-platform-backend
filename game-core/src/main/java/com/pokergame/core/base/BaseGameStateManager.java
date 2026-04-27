@@ -31,32 +31,13 @@ import java.util.concurrent.ConcurrentHashMap;
 @Setter
 public abstract class BaseGameStateManager<P extends BasePlayer> {
 
-    // ==================== 房间信息 ====================
-
-    /** 房间ID */
-    private long roomId;
-
-    /** 房主ID */
-    private long ownerId;
-
-    /** 最大玩家数 */
-    private int maxPlayers;
-
-    /** 游戏状态枚举（子类定义） */
-    protected Enum<?> status;
-
-    // ==================== 玩家数据 ====================
-
-    /** 玩家映射 */
-    protected final Map<Long, P> players = new ConcurrentHashMap<>();
+    // ========== 游戏进程数据 ==========
 
     /** 出牌顺序（玩家ID列表） */
     private List<Long> playOrder = new ArrayList<>();
 
     /** 当前回合索引 */
     private int currentTurnIndex = 0;
-
-    // ==================== 牌局数据 ====================
 
     /** 地主ID */
     private long landlordId = 0;
@@ -73,93 +54,31 @@ public abstract class BaseGameStateManager<P extends BasePlayer> {
     /** 上一手牌型 */
     private PatternResult lastPattern = null;
 
-    // ==================== 倍率数据 ====================
-
     /** 炸弹次数 */
     private int bombCount = 0;
 
     /** 当前倍率 */
     private int multiplier = 1;
 
+    /** 当前游戏状态 */
+    protected Enum<?> status;
+
     // ==================== 构造函数 ====================
 
     /**
      * 构造函数
-     *
-     * @param roomId 房间ID
-     * @param ownerId 房主ID
-     * @param maxPlayers 最大玩家数
      */
-    public BaseGameStateManager(long roomId, long ownerId, int maxPlayers) {
-        this.roomId = roomId;
-        this.ownerId = ownerId;
-        this.maxPlayers = maxPlayers;
-    }
-
-    // ==================== 玩家管理 ====================
-
-    /**
-     * 添加玩家
-     */
-    public void addPlayer(P player) {
-        players.put(player.getUserId(), player);
-        log.info("玩家 {} 加入房间 {}", player.getUserId(), roomId);
-    }
-
-    /**
-     * 移除玩家
-     */
-    public void removePlayer(long userId) {
-        players.remove(userId);
-        log.info("玩家 {} 离开房间 {}", userId, roomId);
-    }
-
-    /**
-     * 获取玩家
-     */
-    public P getPlayer(long userId) {
-        return players.get(userId);
-    }
-
-    /**
-     * 获取玩家数量
-     */
-    public int getPlayerCount() {
-        return players.size();
-    }
-
-    /**
-     * 检查房间是否已满
-     */
-    public boolean isFull() {
-        return players.size() >= maxPlayers;
-    }
-
-    /**
-     * 检查房间是否为空
-     */
-    public boolean isEmpty() {
-        return players.isEmpty();
-    }
-
-    /**
-     * 检查所有玩家是否都已准备
-     */
-    public boolean isAllReady() {
-        if (players.isEmpty()) return false;
-        return players.values().stream().allMatch(BasePlayer::isReady);
-    }
+    public BaseGameStateManager() {}
 
     // ==================== 回合管理 ====================
 
     /**
      * 获取当前回合玩家
      */
-    public P getCurrentPlayer() {
-        if (playOrder.isEmpty() || currentTurnIndex >= playOrder.size()) {
-            return null;
-        }
-        return players.get(playOrder.get(currentTurnIndex));
+    public P getCurrentPlayer(BaseRoom room) {
+        if (playOrder.isEmpty() || currentTurnIndex >= playOrder.size()) return null;
+        long userId = playOrder.get(currentTurnIndex);
+        return room.getPlayerById(userId);
     }
 
     /**
@@ -168,7 +87,7 @@ public abstract class BaseGameStateManager<P extends BasePlayer> {
     public void nextTurn() {
         if (playOrder.isEmpty()) return;
         currentTurnIndex = (currentTurnIndex + 1) % playOrder.size();
-        log.debug("房间 {} 切换到下一个玩家: {}", roomId, getCurrentPlayer());
+        log.debug("切换到下一个玩家，索引={}", currentTurnIndex);
     }
 
     /**
@@ -180,13 +99,15 @@ public abstract class BaseGameStateManager<P extends BasePlayer> {
     public void setPlayOrder(List<Long> order, long startPlayerId) {
         this.playOrder = new ArrayList<>(order);
         this.currentTurnIndex = playOrder.indexOf(startPlayerId);
+        if (this.currentTurnIndex == -1) this.currentTurnIndex = 0;
+        log.debug("设置出牌顺序: {}, 起始玩家索引={}", playOrder, currentTurnIndex);
     }
 
     /**
      * 检查是否为当前玩家
      */
-    public boolean isCurrentPlayer(long userId) {
-        P current = getCurrentPlayer();
+    public boolean isCurrentPlayer(long userId, BaseRoom room) {
+        P current = getCurrentPlayer(room);
         return current != null && current.getUserId() == userId;
     }
 
@@ -222,13 +143,28 @@ public abstract class BaseGameStateManager<P extends BasePlayer> {
     public void addBomb() {
         bombCount++;
         multiplier = 1 + bombCount;
-        log.debug("房间 {} 炸弹触发，当前倍率: {}", roomId, multiplier);
+        log.debug("炸弹触发，当前倍率: {}", multiplier);
     }
 
     /**
      * 重置倍率
      */
     public void resetMultiplier() {
+        this.bombCount = 0;
+        this.multiplier = 1;
+    }
+
+    /**
+     * 重置回合相关状态（不重置玩家数据）
+     */
+    public void resetRound() {
+        this.playOrder.clear();
+        this.currentTurnIndex = 0;
+        this.landlordId = 0;
+        this.landlordExtraCards.clear();
+        this.lastPlayCards = null;
+        this.lastPlayPlayerId = 0;
+        this.lastPattern = null;
         this.bombCount = 0;
         this.multiplier = 1;
     }
@@ -252,20 +188,4 @@ public abstract class BaseGameStateManager<P extends BasePlayer> {
      */
     public abstract void reset();
 
-    // ==================== 辅助方法 ====================
-
-    /**
-     * 重置回合相关状态（不重置玩家数据）
-     */
-    public void resetRound() {
-        this.playOrder.clear();
-        this.currentTurnIndex = 0;
-        this.landlordId = 0;
-        this.landlordExtraCards.clear();
-        this.lastPlayCards = null;
-        this.lastPlayPlayerId = 0;
-        this.lastPattern = null;
-        this.bombCount = 0;
-        this.multiplier = 1;
-    }
 }

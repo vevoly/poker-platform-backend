@@ -71,7 +71,7 @@ public class GameAction {
         GameCode.PLAYER_NOT_IN_ROOM.assertTrueThrows(room == null);
 
         // 检查游戏状态
-        DoudizhuGameStatus status = room.getDoudizhuGameStatus();
+        DoudizhuGameStatus status = (DoudizhuGameStatus) room.getGameStatusEnum();
         GameCode.ILLEGAL_OPERATION.assertTrueThrows(status != DoudizhuGameStatus.BIDDING);
 
         // 获取叫地主管理器并处理
@@ -94,7 +94,7 @@ public class GameAction {
         GameCode.PLAYER_NOT_IN_ROOM.assertTrueThrows(room == null);
 
         // 检查游戏状态
-        DoudizhuGameStatus status = room.getDoudizhuGameStatus();
+        DoudizhuGameStatus status = (DoudizhuGameStatus) room.getGameStatusEnum();
         GameCode.ILLEGAL_OPERATION.assertTrueThrows(status != DoudizhuGameStatus.BIDDING);
 
         // 获取叫地主管理器并处理
@@ -128,7 +128,7 @@ public class GameAction {
         GameCode.PLAYER_NOT_IN_ROOM.assertTrueThrows(room == null);
 
         // 检查游戏状态
-        DoudizhuGameStatus status = room.getDoudizhuGameStatus();
+        DoudizhuGameStatus status = (DoudizhuGameStatus) room.getGameStatusEnum();
         GameCode.GAME_NOT_STARTED.assertTrueThrows(status != DoudizhuGameStatus.PLAYING);
 
         // 检查是否为当前玩家
@@ -159,13 +159,16 @@ public class GameAction {
         }
 
         // 广播出牌
-        DoudizhuBroadcastKit.broadcastPlayCard(userId, cards, room);
+        DoudizhuBroadcastKit.broadcastPlayCard(userId, req.getCards(), result.getPattern(), room);
 
         // 检查游戏是否结束
         if (player.getCardCount() == 0) {
             log.info("玩家 {} 出完所有牌，游戏结束", userId);
             room.updateGameStatus(DoudizhuGameStatus.FINISHED);
-            // TODO: 结算逻辑
+            // 发送游戏结束广播
+            DoudizhuBroadcastKit.broadcastGameEnd(userId, room);
+            // TODO: 发送事件到结算服务进行结算
+
             return;
         }
 
@@ -198,7 +201,7 @@ public class GameAction {
         GameCode.PLAYER_NOT_IN_ROOM.assertTrueThrows(room == null);
 
         // 检查游戏状态
-        DoudizhuGameStatus status = room.getDoudizhuGameStatus();
+        DoudizhuGameStatus status = (DoudizhuGameStatus) room.getGameStatusEnum();
         GameCode.GAME_NOT_STARTED.assertTrueThrows(status != DoudizhuGameStatus.PLAYING);
 
         // 检查是否为当前玩家

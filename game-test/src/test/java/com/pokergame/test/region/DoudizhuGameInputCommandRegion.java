@@ -5,6 +5,8 @@ import com.iohao.game.external.client.command.CallbackDelegate;
 import com.iohao.game.external.client.kit.ScannerKit;
 import com.pokergame.common.card.CardDTO;
 import com.pokergame.common.cmd.DoudizhuCmd;
+import com.pokergame.common.model.broadcast.PassBroadcastData;
+import com.pokergame.common.model.broadcast.PlayCardBroadcastData;
 import com.pokergame.common.model.game.doudizhu.GrabLandlordReq;
 import com.pokergame.common.model.game.doudizhu.NotGrabLandlordReq;
 import com.pokergame.common.model.room.PassReq;
@@ -20,7 +22,7 @@ import java.util.ArrayList;
  * 职责：处理斗地主专属命令（抢地主、出牌、过牌）以及监听斗地主游戏广播
  */
 @Slf4j
-public class DoudizhuGameInputCommandRegion extends AbstractInputCommandRegion {
+public class DoudizhuGameInputCommandRegion extends BaseInputCommandRegion {
 
     private static String currentRoomId = null;  // 当前房间ID，由 RoomInputCommandRegion 设置，这里需要共享
 
@@ -28,10 +30,16 @@ public class DoudizhuGameInputCommandRegion extends AbstractInputCommandRegion {
         this.inputCommandCreate.cmd = DoudizhuCmd.CMD;
     }
 
+    @Override
+    protected String getCurrentRoomId() {
+        return currentRoomId;
+    }
+
     /**
      * 设置当前房间ID（供 RoomInputCommandRegion 调用，因为两个区域需要共享房间ID）
      */
-    public static void setCurrentRoomId(String roomId) {
+    @Override
+    public void setCurrentRoomId(String roomId) {
         currentRoomId = roomId;
     }
 
@@ -40,7 +48,7 @@ public class DoudizhuGameInputCommandRegion extends AbstractInputCommandRegion {
         // ==================== 1. 监听斗地主游戏广播 ====================
         // 出牌广播
         ofListen((CallbackDelegate) result -> {
-            DoudizhuBroadcastKit.PlayCardBroadcastData data = result.getValue(DoudizhuBroadcastKit.PlayCardBroadcastData.class);
+            PlayCardBroadcastData data = result.getValue(PlayCardBroadcastData.class);
             log.info("🃏 收到出牌广播: userId={}, cards={}, remaining={}",
                     data.getUserId(), data.getCards(), data.getRemainingCards());
         }, DoudizhuCmd.PLAY_CARD_BROADCAST, "出牌广播");
@@ -66,7 +74,7 @@ public class DoudizhuGameInputCommandRegion extends AbstractInputCommandRegion {
 
         // 过牌广播
         ofListen((CallbackDelegate) result -> {
-            DoudizhuBroadcastKit.PassBroadcastData data = result.getValue(DoudizhuBroadcastKit.PassBroadcastData.class);
+            PassBroadcastData data = result.getValue(PassBroadcastData.class);
             log.info("⏸️ 收到过牌广播: userId={}", data.getUserId());
         }, DoudizhuCmd.PASS_BROADCAST, "过牌广播");
 
@@ -85,7 +93,10 @@ public class DoudizhuGameInputCommandRegion extends AbstractInputCommandRegion {
                     req.setMultiple(multiple);
                     return req;
                 })
-                .callback(result -> log.info("抢地主成功"));
+                .callback(result -> {
+                    log.info("抢地主成功");
+                    printRoomState();
+                });
 
         // 不抢地主（无额外参数）
         ofCommand(DoudizhuCmd.NOT_GRAB)
@@ -97,7 +108,10 @@ public class DoudizhuGameInputCommandRegion extends AbstractInputCommandRegion {
                     }
                     return req;
                 })
-                .callback(result -> log.info("不抢地主"));
+                .callback(result -> {
+                    log.info("不抢地主");
+                    printRoomState();
+                });
 
         // 出牌（需要输入牌ID列表，转换为 CardDTO）
         ofCommand(DoudizhuCmd.PLAY_CARD)
@@ -117,7 +131,10 @@ public class DoudizhuGameInputCommandRegion extends AbstractInputCommandRegion {
                     req.setCards(cards);
                     return req;
                 })
-                .callback(result -> log.info("出牌成功"));
+                .callback(result -> {
+                    log.info("出牌成功");
+                    printRoomState();
+                });
 
         // 过牌
         ofCommand(DoudizhuCmd.PASS)
@@ -129,6 +146,9 @@ public class DoudizhuGameInputCommandRegion extends AbstractInputCommandRegion {
                     }
                     return req;
                 })
-                .callback(result -> log.info("过牌成功"));
+                .callback(result -> {
+                    log.info("过牌成功");
+                    printRoomState();
+                });
     }
 }

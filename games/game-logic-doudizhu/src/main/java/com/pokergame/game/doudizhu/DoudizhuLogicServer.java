@@ -16,7 +16,7 @@ import com.pokergame.common.deal.pool.HandRankPoolManager;
 import com.pokergame.common.enums.LogicServer;
 import com.pokergame.common.context.MyFlowContext;
 import com.pokergame.common.game.GameType;
-import com.pokergame.game.doudizhu.action.RoomAction;
+import com.pokergame.game.doudizhu.action.DoudizhuRoomAction;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -47,7 +47,7 @@ public class DoudizhuLogicServer extends AbstractBrokerClientStartup {
         // 1. 配置 Action 扫描路径
         var config = new BarSkeletonBuilderParamConfig()
                 // 扫描类所在的包
-                .scanActionPackage(RoomAction.class)
+                .scanActionPackage(DoudizhuRoomAction.class)
                 // 开启广播日志
                 .setBroadcastLog(true);
 

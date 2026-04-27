@@ -1,12 +1,18 @@
 package com.pokergame.game.doudizhu.turn;
 
+import com.iohao.game.action.skeleton.core.flow.FlowContext;
+import com.iohao.game.action.skeleton.core.flow.FlowContextKit;
 import com.pokergame.core.base.BaseTurnManager;
 import com.pokergame.game.doudizhu.bidding.BiddingManager;
 import com.pokergame.game.doudizhu.enums.InternalOperation;
+import com.pokergame.game.doudizhu.room.DoudizhuPlayer;
 import com.pokergame.game.doudizhu.room.DoudizhuRoom;
 import com.pokergame.game.doudizhu.state.DoudizhuGameStateManager;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 斗地主回合管理器
@@ -28,6 +34,27 @@ public class DoudizhuTurnManager extends BaseTurnManager<DoudizhuRoom> {
 
     @Override
     protected void onTimeout() {
+        DoudizhuPlayer currentPlayer = room.getCurrentPlayer();
+        if (currentPlayer == null) return;
+
+        long userId = currentPlayer.getUserId();
+        // 超时计数
+        int count = timeoutCount.getOrDefault(userId, 0) + 1;
+        timeoutCount.put(userId, count);
+        log.info("玩家 {} 第 {} 次超时", userId, count);
+
+        if (count >= 2) {
+            // 达到阈值，进入托管
+            room.getTrusteeshipManager().setTrustee(userId, true);
+            // 取消本次超时计时器，因为托管会自动执行一次操作
+            cancelTimeout();
+            // 立即触发一次自动操作
+            room.getTrusteeshipManager().autoAct(userId);
+        } else {
+            // 未达阈值，仅过牌一次
+            FlowContext flowContext = FlowContextKit.ofFlowContext(userId);
+            room.operation(InternalOperation.PASS, flowContext);
+        }
         log.info("房间 {} 玩家 {} 出牌超时", room.getRoomId(), room.getCurrentPlayer());
         // 超时自动过牌
         room.operation(InternalOperation.PASS);

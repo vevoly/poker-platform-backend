@@ -4,10 +4,10 @@ import com.iohao.game.external.client.AbstractInputCommandRegion;
 import com.iohao.game.external.client.command.CallbackDelegate;
 import com.iohao.game.external.client.kit.ScannerKit;
 import com.pokergame.common.cmd.RoomCmd;
+import com.pokergame.common.model.broadcast.*;
 import com.pokergame.common.model.game.StartGameReq;
 import com.pokergame.common.model.player.PlayerInfoDTO;
 import com.pokergame.common.model.room.*;
-import com.pokergame.game.doudizhu.broadcast.DoudizhuBroadcastKit;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.stream.Collectors;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * 职责：处理房间相关的命令（创建、加入、离开、准备、开始）以及监听房间相关的广播
  */
 @Slf4j
-public class RoomInputCommandRegion extends AbstractInputCommandRegion {
+public class RoomInputCommandRegion extends BaseInputCommandRegion {
 
     private static String currentRoomId = null;  // 当前所在房间ID，用于后续命令的默认值
 
@@ -29,30 +29,7 @@ public class RoomInputCommandRegion extends AbstractInputCommandRegion {
     @Override
     public void initInputCommand() {
         // ==================== 1. 监听房间相关的广播消息 ====================
-        // 监听游戏开始广播（RoomCmd 主路由）
-        ofListen((CallbackDelegate) result -> {
-            DoudizhuBroadcastKit.GameStartBroadcastData data = result.getValue(DoudizhuBroadcastKit.GameStartBroadcastData.class);
-            log.info("🎮 收到游戏开始广播: roomId={}, players={}", data.getRoomId(), data.getPlayers());
-        }, RoomCmd.GAME_START_BROADCAST, "游戏开始广播");
-
-        // 监听玩家进入房间广播
-        ofListen((CallbackDelegate) result -> {
-            DoudizhuBroadcastKit.EnterRoomBroadcastData data = result.getValue(DoudizhuBroadcastKit.EnterRoomBroadcastData.class);
-            log.info("🚪 收到玩家进入广播: userId={}, nickname={}", data.getUserId(), data.getNickname());
-        }, RoomCmd.ENTER_ROOM_BROADCAST, "玩家进入广播");
-
-        // 监听玩家离开房间广播
-        ofListen((CallbackDelegate) result -> {
-            DoudizhuBroadcastKit.QuitRoomBroadcastData data = result.getValue(DoudizhuBroadcastKit.QuitRoomBroadcastData.class);
-            log.info("🚶 收到玩家离开广播: userId={}", data.getUserId());
-        }, RoomCmd.QUIT_ROOM_BROADCAST, "玩家离开广播");
-
-        // 监听准备状态广播
-        ofListen((CallbackDelegate) result -> {
-            DoudizhuBroadcastKit.ReadyBroadcastData data = result.getValue(DoudizhuBroadcastKit.ReadyBroadcastData.class);
-            log.info("✅ 收到准备状态广播: userId={}, ready={}, nickname={}",
-                    data.getUserId(), data.isReady(), data.getNickname());
-        }, RoomCmd.READY_BROADCAST, "准备状态广播");
+        listenPublicBroadcast();
 
         // ==================== 2. 房间操作命令 ====================
 
@@ -72,6 +49,7 @@ public class RoomInputCommandRegion extends AbstractInputCommandRegion {
                     currentRoomId = String.valueOf(resp.getRoomId());
                     log.info("房间创建成功: roomId={}, ownerId={}, maxPlayers={}, playerCount={}",
                             resp.getRoomId(), resp.getOwnerId(), resp.getMaxPlayers(), resp.getPlayerCount());
+                    printRoomState();
                 });
 
         // 加入房间（需要用户输入房间ID）
@@ -91,6 +69,7 @@ public class RoomInputCommandRegion extends AbstractInputCommandRegion {
                     log.info("加入房间成功: roomId={}, playerCount={}, players={}",
                             resp.getRoomId(), resp.getPlayerCount(),
                             resp.getPlayers().stream().map(PlayerInfoDTO::getNickname).collect(Collectors.toList()));
+                    printRoomState();
                 });
 
         // 离开房间（服务端根据当前用户获取所在房间，无需 roomId）
@@ -100,6 +79,8 @@ public class RoomInputCommandRegion extends AbstractInputCommandRegion {
                 .callback(result -> {
                     log.info("离开房间成功");
                     currentRoomId = null;
+                    printRoomState();
+
                 });
 
         // 准备（服务端根据当前用户获取房间，无需 roomId）
@@ -110,12 +91,47 @@ public class RoomInputCommandRegion extends AbstractInputCommandRegion {
                     req.setReady(true);
                     return req;
                 })
-                .callback(result -> log.info("准备成功"));
+                .callback(result -> {
+                    log.info("准备成功");
+                    printRoomState();
+                });
 
         // 开始游戏（房主专用，服务端自动校验权限，无需 roomId）
         ofCommand(RoomCmd.START_GAME)
                 .setTitle("开始游戏")
                 .setRequestData(StartGameReq::new)
-                .callback(result -> log.info("游戏开始"));
+                .callback(result -> {
+                    log.info("游戏开始");
+                    printRoomState();
+                });
+
+        // 托管（服务端根据当前用户获取所在房间，无需 roomId）
+        ofCommand(RoomCmd.TRUSTEESHIP)
+                .setTitle("托管(1开启/0关闭)")
+                .setRequestData(() -> {
+                    ScannerKit.log(() -> log.info("请输入托管状态(1:开启,0:关闭):"));
+                    int state = ScannerKit.nextInt(0);
+                    TrusteeshipReq req = new TrusteeshipReq();
+                    req.setTrusteeship(state == 1);
+                    if (currentRoomId != null) {
+                        req.setRoomId(Long.parseLong(currentRoomId));
+                    }
+                    return req;
+                })
+                .callback(result -> {
+                    log.info("托管状态设置成功");
+                    printRoomState();
+                });
     }
+
+    @Override
+    protected String getCurrentRoomId() {
+        return currentRoomId;
+    }
+
+    @Override
+    protected void setCurrentRoomId(String roomId) {
+        currentRoomId = roomId;
+    }
+
 }

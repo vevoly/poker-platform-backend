@@ -36,27 +36,5 @@ public interface DoudizhuCmd {
     /** 过牌 */
     int PASS = 4;
 
-    // ========== 广播路由 (100-199) ==========
-
-    /** 叫地主回合广播 */
-    int BIDDING_TURN_BROADCAST = 100;
-
-    /** 发牌广播 */
-    int DEAL_CARDS_BROADCAST = 101;
-
-    /** 叫地主广播 */
-    int GRAB_LANDLORD_BROADCAST = 102;
-
-    /** 不叫地主广播 */
-    int NOT_GRAB_LANDLORD_BROADCAST = 103;
-
-    /** 出牌广播 */
-    int PLAY_CARD_BROADCAST = 104;
-
-    /** 过牌广播 */
-    int PASS_BROADCAST = 105;
-
-    /** 游戏结束广播 */
-    int GAME_END_BROADCAST = 106;
 
 }

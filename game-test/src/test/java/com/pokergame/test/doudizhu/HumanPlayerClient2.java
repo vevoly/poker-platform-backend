@@ -45,6 +45,7 @@ public class HumanPlayerClient2 {
         log.info("玩家2客户端已启动，命令示例：");
         log.info("  加入房间: 100-2");
         log.info("  准备: 100-10");
+        log.info("  托管：100-12");
         log.info("  不抢地主: 101-2");
         log.info("  出牌: 101-3");
         log.info("  过牌: 101-4");

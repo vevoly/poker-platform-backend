@@ -50,7 +50,7 @@ public final class StartGameOperationHandler implements OperationHandler {
         GameCode.PLAYER_NOT_READY.assertTrueThrows(!room.isAllReady());
 
         // 4. 游戏状态必须是等待或准备中
-        DoudizhuGameStatus status = room.getDoudizhuGameStatus();
+        DoudizhuGameStatus status = (DoudizhuGameStatus) room.getGameStatusEnum();
         boolean canStart = status == DoudizhuGameStatus.WAITING ||
                 status == DoudizhuGameStatus.READY;
         GameCode.ILLEGAL_OPERATION.assertTrueThrows(!canStart);

@@ -1,16 +1,42 @@
-package com.pokergame.core.base;
+package com.pokergame.core.broadcast;
 
 import com.iohao.game.action.skeleton.core.CmdInfo;
+import com.pokergame.common.model.broadcast.BaseBroadcastData;
+import com.pokergame.common.util.SignUtil;
+import com.pokergame.core.base.BaseRoom;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 通用广播工具，提供所有游戏共用的广播方法。
  * 各游戏可在此基础上封装自己的广播工具。
  */
 @Slf4j
-public final class BaseBroadcastKit {
+public final class BroadcastKit {
 
-    private BaseBroadcastKit() {}
+    private static final AtomicInteger SEQ_GENERATOR = new AtomicInteger(0);
+
+    private BroadcastKit() {}
+
+    /**
+     * 填充广播数据的公共字段（ts, seqId, gameType, userId）
+     *
+     * @param data     广播数据对象
+     * @param gameType 游戏类型（来自 GameType.getCode()）
+     * @param userId   操作者用户ID（若无则传0）
+     * @param <T>      广播数据类型
+     * @return 填充后的同对象（便于链式调用）
+     */
+    public static <T extends BaseBroadcastData> T fill(T data, int gameType, long userId) {
+        data.setTs(System.currentTimeMillis());
+        data.setSeqId(SEQ_GENERATOR.incrementAndGet());
+        data.setGameType(gameType);
+        data.setUserId(userId);
+        // todo 签名暂不实现，可预留
+//        data.setSign(SignUtil.sign(data, null));
+        return data;
+    }
 
     /**
      * 向房间内所有玩家广播消息

@@ -6,6 +6,8 @@ import com.iohao.game.widget.light.room.Room;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -21,11 +23,23 @@ import java.util.concurrent.atomic.AtomicReference;
 @Slf4j
 public abstract class BaseTurnManager<R extends Room> {
 
+    /** 房间  */
     protected final R room;
+
+    /** 当前任务ID */
     protected final AtomicReference<String> currentTaskId = new AtomicReference<>();
+
+    /** 超时次数统计 */
+    protected final Map<Long, Integer> timeoutCount = new ConcurrentHashMap<>();
 
     /** 默认超时时间（秒） */
     protected static final int DEFAULT_TIMEOUT_SECONDS = 15;
+
+    /** 当前超时开始时间 */
+    private long currentTimeoutStartTime = 0;
+
+    /** 当前超时秒数 */
+    private int currentTimeoutSeconds = 0;
 
     public BaseTurnManager(R room) {
         this.room = room;
@@ -43,6 +57,8 @@ public abstract class BaseTurnManager<R extends Room> {
      */
     public void startTimeout(int seconds) {
         cancelTimeout();
+        currentTimeoutStartTime = System.currentTimeMillis();
+        currentTimeoutSeconds = seconds;
 
         String taskId = generateTaskId();
         currentTaskId.set(taskId);
@@ -77,6 +93,8 @@ public abstract class BaseTurnManager<R extends Room> {
      */
     public void setTimeout(int seconds, Runnable onTimeout) {
         cancelTimeout();
+        currentTimeoutStartTime = System.currentTimeMillis();
+        currentTimeoutSeconds = seconds;
 
         String taskId = generateTaskId();
         currentTaskId.set(taskId);
@@ -99,6 +117,8 @@ public abstract class BaseTurnManager<R extends Room> {
             currentTaskId.set(null);
             log.debug("取消超时定时器");
         }
+        currentTimeoutStartTime = 0;
+        currentTimeoutSeconds = 0;
     }
 
     /**
@@ -107,6 +127,16 @@ public abstract class BaseTurnManager<R extends Room> {
     public void resetTimeout() {
         cancelTimeout();
         startTimeout();
+    }
+
+    /**
+     * 获取剩余超时时间（秒）
+     */
+    public int getRemainingTimeoutSeconds() {
+        if (currentTimeoutSeconds <= 0) return 0;
+        long elapsed = System.currentTimeMillis() - currentTimeoutStartTime;
+        int remaining = (int) ((currentTimeoutSeconds * 1000L - elapsed) / 1000);
+        return Math.max(remaining, 0);
     }
 
     /**
@@ -126,5 +156,12 @@ public abstract class BaseTurnManager<R extends Room> {
      */
     public void reset() {
         cancelTimeout();
+    }
+
+    /**
+     * 清空超时次数统计
+     */
+    protected void clearTimeoutCount(long userId) {
+        timeoutCount.remove(userId);
     }
 }

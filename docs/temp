@@ -1,0 +1,11 @@
+
+
+广播系统重构：区分 broadcastToRoom 和 broadcastToUser，消除 DoudizhuBroadcastKit 中的冗余。 完成
+
+广播数据去敏感：将播放动画所需的牌型判断移至客户端，服务器只传递牌型代码。完成
+
+实现基础状态拉取接口：补充 RoomStateDTO 的详细信息，为断线重连做准备。
+
+实现断线重连逻辑：利用 ConnectionEventProcessor 和“延迟清理”策略，配合重连后的状态同步。
+
+实现心跳机制：在底层（如 ExternalServer 配置）或业务层实现心跳代码。

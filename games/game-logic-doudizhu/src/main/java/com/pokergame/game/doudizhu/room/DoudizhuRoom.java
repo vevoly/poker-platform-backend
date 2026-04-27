@@ -1,11 +1,19 @@
 package com.pokergame.game.doudizhu.room;
 
+import com.iohao.game.action.skeleton.core.CmdInfo;
+import com.iohao.game.bolt.broker.core.client.BrokerClientHelper;
 import com.iohao.game.widget.light.room.Player;
 import com.pokergame.common.card.Card;
+import com.pokergame.common.cmd.DoudizhuCmd;
+import com.pokergame.common.model.room.PlayCardReq;
+import com.pokergame.common.util.RpcInvokeUtil;
 import com.pokergame.core.base.BaseRoom;
+import com.pokergame.core.trustee.TrusteeshipManager;
 import com.pokergame.game.doudizhu.bidding.BiddingManager;
+import com.pokergame.game.doudizhu.broadcast.DoudizhuBroadcastKit;
 import com.pokergame.game.doudizhu.enums.DoudizhuGameStatus;
 import com.pokergame.game.doudizhu.state.DoudizhuGameStateManager;
+import com.pokergame.game.doudizhu.trustee.DoudizhuTrusteeshipManager;
 import com.pokergame.game.doudizhu.turn.DoudizhuTurnManager;
 import lombok.Getter;
 import lombok.Setter;
@@ -38,25 +46,28 @@ public class DoudizhuRoom extends BaseRoom {
     /** 叫地主管理器 */
     private BiddingManager biddingManager;
 
+    /** 托管管理器 */
+    private DoudizhuTrusteeshipManager trusteeshipManager;
+
     // ==================== 构造函数 ====================
     public DoudizhuRoom() {
         super();
     }
 
+    // ==================== 房间生命周期方法 ====================
+
     /**
      * 初始化游戏状态（必须在房间创建后、添加玩家前调用一次）
-     * 此方法创建 gameState、turnManager、biddingManager，并将当前房间内的玩家同步到 gameState。
+     * 此方法创建 stateManager、turnManager、biddingManager、trusteeshipManager，
+     * 并将当前房间内的玩家同步到 gameState。
      */
     public void initGameState() {
-        this.stateManager = new DoudizhuGameStateManager(getRoomId(), getOwnerId(), getMaxPlayers());
-        // 将当前房间内的玩家同步到 gameState（房间创建时房主已加入）
-        for (Player player : getPlayerMap().values()) {
-            stateManager.addPlayer((DoudizhuPlayer) player);
-        }
+        this.stateManager = new DoudizhuGameStateManager();
         this.turnManager = new DoudizhuTurnManager(this);
         this.biddingManager = new BiddingManager(this);
         // 设置回合管理器的叫地主管理器引用（用于超时回调）
         this.turnManager.setBiddingManager(this.biddingManager);
+        this.trusteeshipManager = new DoudizhuTrusteeshipManager(this);
     }
 
     // ==================== 实现 BaseRoom 的抽象方法 ====================
@@ -69,7 +80,7 @@ public class DoudizhuRoom extends BaseRoom {
     public void updateGameStatus(Enum<?> status) {
         DoudizhuGameStatus ds = (DoudizhuGameStatus) status;
         // 更新基类的字符串状态（用于客户端展示）
-        super.setGameStatus(ds.name());   // 调用父类 Lombok 生成的 setter
+        super.setGameStatus(ds.name());
         // 同步更新游戏逻辑状态
         if (stateManager != null) {
             stateManager.changeStatus(ds);
@@ -81,10 +92,15 @@ public class DoudizhuRoom extends BaseRoom {
         return DoudizhuGameStatus.valueOf(getGameStatus());
     }
 
-    public DoudizhuGameStatus getDoudizhuGameStatus() {
-        return DoudizhuGameStatus.valueOf(getGameStatus());
+    @Override
+    public TrusteeshipManager getTrusteeshipManager() {
+        return trusteeshipManager;
     }
 
+    @Override
+    public boolean isCurrentPlayer(long userId) {
+        return stateManager != null && stateManager.isCurrentPlayer(userId, this);
+    }
 
     // ==================== 玩家管理增强（同步到 gameState） ====================
 
@@ -95,9 +111,6 @@ public class DoudizhuRoom extends BaseRoom {
     @Override
     public void addPlayer(Player player) {
         super.addPlayer(player);
-        if (stateManager != null) {
-            stateManager.addPlayer((DoudizhuPlayer) player);
-        }
     }
 
     /**
@@ -107,26 +120,40 @@ public class DoudizhuRoom extends BaseRoom {
     @Override
     public void removePlayer(Player player) {
         super.removePlayer(player);
-        if (stateManager != null) {
-            stateManager.removePlayer(player.getUserId());
-        }
     }
 
     // ==================== 游戏逻辑委托方法（转发给 gameState） ====================
 
     /** 获取当前回合玩家 */
     public DoudizhuPlayer getCurrentPlayer() {
-        return stateManager != null ? stateManager.getCurrentPlayer() : null;
+        return stateManager != null ? stateManager.getCurrentPlayer(this) : null;
     }
 
-    /** 判断指定玩家是否为当前回合玩家 */
-    public boolean isCurrentPlayer(long userId) {
-        return stateManager != null && stateManager.isCurrentPlayer(userId);
+    /**
+     * 广播当前回合（根据游戏状态自动判断阶段）
+     */
+    public void broadcastCurrentTurn() {
+        DoudizhuGameStatus status = (DoudizhuGameStatus) getGameStatusEnum();
+        DoudizhuPlayer currentPlayer = getCurrentPlayer();
+        if (status == DoudizhuGameStatus.BIDDING) {
+            BiddingManager bm = getBiddingManager();
+            if (bm != null && currentPlayer != null) {
+                DoudizhuBroadcastKit.broadcastBiddingTurn(currentPlayer.getUserId(), bm.getCurrentBiddingRound(), this);
+            }
+        } else if (status == DoudizhuGameStatus.PLAYING) {
+            if (currentPlayer != null) {
+                DoudizhuBroadcastKit.broadcastTurn(currentPlayer.getUserId(), this);
+            }
+        }
     }
 
     /** 切换到下一个玩家 */
     public void nextTurn() {
-        if (stateManager != null) stateManager.nextTurn();
+        if (stateManager != null) {
+            stateManager.nextTurn();
+            // 广播回合切换
+            broadcastCurrentTurn();
+        }
     }
 
     /** 设置出牌顺序 */
@@ -149,6 +176,7 @@ public class DoudizhuRoom extends BaseRoom {
         if (stateManager != null) stateManager.setLandlordId(landlordId);
     }
 
+
     /** 获取当前倍数 */
     public int getCurrentMultiple() {
         return stateManager != null ? stateManager.getMultiplier() : 1;
@@ -163,7 +191,7 @@ public class DoudizhuRoom extends BaseRoom {
 
     /** 类型安全地获取斗地主玩家 */
     public DoudizhuPlayer getDoudizhuPlayer(long userId) {
-        return (DoudizhuPlayer) getPlayerById(userId);
+        return getPlayerById(userId);
     }
 
     /** 获取所有斗地主玩家列表 */
@@ -171,6 +199,34 @@ public class DoudizhuRoom extends BaseRoom {
         return getPlayerMap().values().stream()
                 .map(p -> (DoudizhuPlayer) p)
                 .collect(Collectors.toList());
+    }
+
+    // ==================== 自动出牌（托管专用） ====================
+
+    /**
+     * 自动出牌（由托管管理器调用）
+     * @param userId 托管玩家ID
+     * @param cards 要出的牌
+     */
+    public void autoPlay(long userId, List<Card> cards) {
+        // 构造出牌请求
+        PlayCardReq req = new PlayCardReq();
+        req.setRoomId(getRoomId());
+        req.setCards(cards.stream().map(Card::toDTO).collect(Collectors.toList()));
+
+        try {
+            // 通过 RPC 调用斗地主逻辑服的出牌接口（注意：这里应使用异步或直接调用本地方法，避免循环依赖）
+            // 由于 current RoomAction 也在本逻辑服内，直接 RPC 调用会走网络开销，但功能上正确。
+            RpcInvokeUtil.invoke(
+                    BrokerClientHelper.getBrokerClient(),
+                    CmdInfo.of(DoudizhuCmd.CMD, DoudizhuCmd.PLAY_CARD),
+                    req,
+                    userId,
+                    Void.class
+            );
+        } catch (Exception e) {
+            log.error("托管玩家 {} 自动出牌失败", userId, e);
+        }
     }
 
     // ==================== 重置 ====================
@@ -192,4 +248,5 @@ public class DoudizhuRoom extends BaseRoom {
         return String.format("DoudizhuRoom{roomId=%d, gameStatus=%s, playerCount=%d, maxPlayers=%d, ownerId=%d}",
                 getRoomId(), getGameStatus(), getPlayerCount(), getMaxPlayers(), getOwnerId());
     }
+
 }
